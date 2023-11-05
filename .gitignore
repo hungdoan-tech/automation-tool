@@ -162,3 +162,4 @@ cython_debug/
 
 log/
 chrome_driver/
+input/settings.input

@@ -21,6 +21,16 @@ class AutomatedTask:
         self._settings: dict[str, str] = settings
 
         self._downloadFolder = self._settings['download.path']
+        if not os.path.isdir(self._downloadFolder):
+            centralized_logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+                                    f"not folder")
+            raise Exception(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+                                    f"not folder")
+
+        if not os.path.exists(self._downloadFolder):
+            os.makedirs(self._downloadFolder)
+            centralized_logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
+
         if self._settings['time.unit.factor'] is None:
             self._timingFactor = 1.0
         else:
@@ -55,10 +65,6 @@ class AutomatedTask:
         options.add_argument('--disable-extensions')
         options.add_argument('--disable-infobars')
         options.add_argument('--disable-notifications')
-
-        if not os.path.exists(self._downloadFolder):
-            os.makedirs(self._downloadFolder)
-            centralized_logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
 
         download_path: str = self._downloadFolder
         prefs: dict = {
