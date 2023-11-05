@@ -36,7 +36,7 @@ set SOURCE_PATH=%USERPROFILE%\%OneDriveFolder%\automation_tool
             echo D^='Documents'
             echo for C in A.listdir^(F^):
             echo 	if A.path.isdir^(A.path.join^(F^,C^)^)and C.startswith^(H^):D^=C^;break
-            echo G^='automation-tool'
+            echo G^='automation_tool'
             echo K^=A.path.join^(A.path.expanduser^(E^)^,D^,G^)
             echo def L^(^):
             echo 	if A.path.exists^(K^):B^('Already containing the source code'^)^;return
