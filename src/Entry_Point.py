@@ -4,7 +4,7 @@ from Automated_Ticket_CottonOn import AutomatedTicketCottonOn
 from Automated_Task import AutomatedTask
 from Utilities import load_settings_from_file, escape_bat_file_special_chars
 from Constants import ROOT_DIR
-from src.Logger import centralized_logger
+from Logger import centralized_logger
 
 
 def escape_special_chars_to_embedded_python_to_bat():

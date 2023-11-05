@@ -6,7 +6,7 @@ from logging import Logger, FileHandler, StreamHandler, Formatter
 from typing import TextIO
 from logging.handlers import RotatingFileHandler
 
-from src.Constants import LOG_FOLDER
+from Constants import LOG_FOLDER
 
 
 def create_logger(class_name: str, level: int = logging.INFO) -> Logger:
