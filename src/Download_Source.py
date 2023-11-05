@@ -9,7 +9,7 @@ for folder in os.listdir(user_home):
     if os.path.isdir(os.path.join(user_home, folder)) and folder.startswith(search_term):
         CLOUD_MAPPING_FOLDER = folder
         break
-SOURCE_FOLDER_NAME: str = 'automation-tool'
+SOURCE_FOLDER_NAME: str = 'automation_tool'
 SOURCE_FOLDER = os.path.join(os.path.expanduser("~"), CLOUD_MAPPING_FOLDER, SOURCE_FOLDER_NAME)
 
 

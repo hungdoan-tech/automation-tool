@@ -6,7 +6,7 @@ F=A.path.expanduser(E)
 D='Documents'
 for C in A.listdir(F):
 	if A.path.isdir(A.path.join(F,C))and C.startswith(H):D=C;break
-G='automation-tool'
+G='automation_tool'
 K=A.path.join(A.path.expanduser(E),D,G)
 def L():
 	if A.path.exists(K):B('Already containing the source code');return
