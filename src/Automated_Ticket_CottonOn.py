@@ -138,7 +138,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         full_file_path: str = os.path.join(self._downloadFolder, booking +
                                            self.__ticket_cotton_on_file_download_extension)
         self._wait_download_file_complete(full_file_path)
-        extract_zip_task = threading.Thread(target=extract_zip, args=(full_file_path, self._downloadFolder, True))
+        extract_zip_task = threading.Thread(target=extract_zip, args=(full_file_path, self._downloadFolder, 1, True))
         extract_zip_task.daemon = True
         extract_zip_task.start()
 

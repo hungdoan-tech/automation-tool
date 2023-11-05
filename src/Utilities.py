@@ -113,7 +113,8 @@ def decode_url(url: str) -> str:
 
 
 def extract_zip(zip_file_path: str,
-                extracted_dir: str, sleep_time_before_extract: int = 1,
+                extracted_dir: str,
+                sleep_time_before_extract: int = 1,
                 delete_all_others: bool = False) -> None:
     time.sleep(sleep_time_before_extract)
     if not os.path.isfile(zip_file_path) or not zip_file_path.lower().endswith('.zip'):
@@ -141,7 +142,7 @@ def extract_zip(zip_file_path: str,
 
     if delete_all_others:
         current_dir: str = os.path.dirname(os.path.abspath(zip_file_path))
-        remove_all_files_in_folder(current_dir)
+        remove_all_files_in_folder(current_dir, True)
 
 
 def escape_bat_file_special_chars(input_file: str = '.\\Download_Source.py',
@@ -187,23 +188,19 @@ def check_parent_folder_contain_all_required_sub_folders(parent_folder: str,
         if os.path.isdir(full_dir_name) and dir_name in required_sub_folders:
             contained_set.add(dir_name)
             required_sub_folders.discard(dir_name)
-        else:
-            if delete_all_others and os.path.isdir(full_dir_name):
-                remove_all_files_in_folder(folder_path=full_dir_name)
-            else:
-                os.remove(full_dir_name)
 
     is_all_contained: bool = len(required_sub_folders) == 0
     not_contained_set: set[str] = copy.deepcopy(required_sub_folders)
     return is_all_contained, contained_set, not_contained_set
 
 
-def remove_all_files_in_folder(folder_path: str) -> None:
+def remove_all_files_in_folder(folder_path: str, only_files: bool = False) -> None:
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
-            remove_all_files_in_folder(file_path)
+            if not only_files:
+                remove_all_files_in_folder(file_path)
     centralized_logger.debug(
         r'Deleted all other generated files in {} while running exception the extracted folder'.format(folder_path))
