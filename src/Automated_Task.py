@@ -88,10 +88,17 @@ class AutomatedTask:
 
     def _wait_download_file_complete(self, file_path: str) -> None:
         centralized_logger.info(r'Waiting for downloading {} complete'.format(file_path))
+        attempt_counting: int = 0
+        max_attempt: int = 60 * 3
         while True:
+            if attempt_counting > max_attempt:
+                raise Exception('The webapp waiting too long to download {}. Please check'.format(file_path))
+
             if not os.path.exists(file_path):
                 time.sleep(1 * self._timingFactor)
+                attempt_counting += 1
                 continue
+
             break
         centralized_logger.info(r'Downloading {} complete'.format(file_path))
 
@@ -106,13 +113,14 @@ class AutomatedTask:
 
             if current_url == previous_url:
                 time.sleep(1 * self._timingFactor)
+                attempt_counting += 1
                 continue
 
             break
 
     def _wait_to_close_all_new_tabs_except_the_current(self):
         current_attempt: int = 0
-        max_attempt: int = 60 * 2
+        max_attempt: int = 60 * 3
         while True:
             number_of_current_tabs: int = len(self._driver.window_handles)
             if current_attempt > max_attempt:

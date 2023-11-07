@@ -54,7 +54,7 @@ def place_suitable_chromedriver():
         extracted_folder: str
         if int(base_driver_version) < 115:
             download_url = "https://chromedriver.storage.googleapis.com/" + specific_version + "/chromedriver_win32.zip"
-            extracted_folder = 'chromedriver_win32'
+            extracted_folder = ''
         else:
             download_url = ("https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/" + specific_version +
                             "/win64/chromedriver-win64.zip")

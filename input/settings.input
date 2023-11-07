@@ -19,8 +19,8 @@
 # use.GUI = use GUI or not, if not the program will be run in a headless manner / in background /  not recommend
 #
 # time.unit.factor = 1 is normal, if want your program run faster or slower each time waiting
-# to click or typing, just adjust that factor.  eg 1.5 for faster x1.5,   0.5 for slower 1/2...
-# when use.GUI =  True, maybe we could adjust time.unit.factor to 0.75
+# to click or typing, just adjust that factor.  eg 1.5 for slower x1.5,   0.5 for faster x1.5...
+# when use.GUI =  True, maybe we could adjust time.unit.factor to 0.75 - faster x1.25
 # --------------------------------------------------------------------------------------------
 
 username =

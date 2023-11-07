@@ -93,11 +93,16 @@ class AutomatedTicketCottonOn(AutomatedTask):
                                                                  content=booking)
 
         # try to click option_booking - which usually out of focus and be removed from the DOM / cause exception
+        try_attempt_count: int = 0
         while True:
             try:
+                if try_attempt_count > 20:
+                    raise Exception('Look like we have problems with the web structure changed - '
+                                    'we could not click on the option_booking ! Need to our investigation')
+
                 time.sleep(1 * self._timingFactor)
                 self._driver.find_element(by=By.CSS_SELECTOR, value='.MuiAutocomplete-option:nth-child(1)').click()
-                centralized_logger.info('Clicked option_booking successfully')
+                centralized_logger.info('Clicked option_booking for {} successfully'.format(booking))
                 break
             except Exception as exception:
                 centralized_logger.error(exception.args[0] if exception.args else None)
@@ -108,7 +113,9 @@ class AutomatedTicketCottonOn(AutomatedTask):
                 time.sleep(1 * self._timingFactor)
                 search_box.click()
 
-                centralized_logger.info('Sent new key and click to try revoke the autocomplete board show up')
+                centralized_logger.info('The {}th sent new key and click to try revoke the autocomplete board show up '
+                                        'option_booking for {}'.format(try_attempt_count , booking))
+                try_attempt_count += 1
                 continue
 
         # click detail booking
