@@ -1,3 +1,4 @@
+import logging
 import os
 
 import requests
@@ -6,11 +7,12 @@ import wget
 import re
 
 from Utilities import remove_all_files_in_folder
-from Logger import centralized_logger
 from Constants import PATH_TO_DRIVER, PREFIX_DRIVER_NAME, DRIVER_EXTENSION
+from ThreadLocalLogger import get_current_logger
 
 
 def get_latest_version_from_google(base_number_version: str) -> str:
+    logger: logging.Logger = get_current_logger()
     url: str
     if int(base_number_version) < 115:
         url = 'https://chromedriver.storage.googleapis.com/LATEST_RELEASE_' + str(base_number_version)
@@ -18,12 +20,13 @@ def get_latest_version_from_google(base_number_version: str) -> str:
         url = 'https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_' + str(base_number_version)
     response = requests.get(url)
     specific_version: str = response.text
-    centralized_logger.info('Specific chrome driver version {} is suitable for our local machine chrome version{}'.format(
+    logger.info('Specific chrome driver version {} is suitable for our local machine chrome version{}'.format(
         specific_version, base_number_version))
     return specific_version
 
 
 def get_current_local_chrome_base_version() -> str:
+    logger: logging.Logger = get_current_logger()
     base_number_version: str = '119'
     chrome_registry = os.popen(r'reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version')
     replies = chrome_registry.read()
@@ -38,12 +41,12 @@ def get_current_local_chrome_base_version() -> str:
             tokens = full_version.split('.')
             base_number_version = tokens[0]
             break
-    centralized_logger.info('Local machine chrome version used is {}'.format(base_number_version))
+    logger.info('Local machine chrome version used is {}'.format(base_number_version))
     return base_number_version
 
 
 def place_suitable_chromedriver():
-
+    logger: logging.Logger = get_current_logger()
     base_driver_version: str = get_current_local_chrome_base_version()
     destination_path: str = os.path.join(PATH_TO_DRIVER, PREFIX_DRIVER_NAME + base_driver_version + DRIVER_EXTENSION)
 
@@ -60,7 +63,7 @@ def place_suitable_chromedriver():
                             "/win64/chromedriver-win64.zip")
             extracted_folder = 'chromedriver-win64'
 
-        centralized_logger.info('Downloading chrome driver {} is complete'.format(specific_version))
+        logger.info('Downloading chrome driver {} is complete'.format(specific_version))
         if not os.path.exists(PATH_TO_DRIVER):
             os.makedirs(PATH_TO_DRIVER)
 
@@ -76,7 +79,7 @@ def place_suitable_chromedriver():
 
         remove_all_files_in_folder(full_path_extracted_folder)
         os.rmdir(full_path_extracted_folder)
-        centralized_logger.info('Chrome driver will be placed at {} for further operations'.format(destination_path))
+        logger.info('Chrome driver will be placed at {} for further operations'.format(destination_path))
 
 
 def get_full_browser_driver_path() -> str:

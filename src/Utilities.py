@@ -9,11 +9,12 @@ from openpyxl.cell.cell import Cell
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-from Logger import centralized_logger
 from Constants import ROOT_DIR
+from ThreadLocalLogger import get_current_logger
 
 
 def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> set[str]:
+    logger = get_current_logger()
     column: str = 'A'
     start_row: int = 0
 
@@ -22,7 +23,7 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
         column = result.group(1)
         start_row = int(result.group(2))
 
-    centralized_logger.info(
+    logger.info(
         r"Read data from file {} at sheet {}, collect all data at column {} start from row {}".format(
             file_path, sheet_name, column, start_row))
     workbook: Workbook = openpyxl.load_workbook(filename=r'{}'.format(file_path), data_only=True, keep_vba=True)
@@ -45,21 +46,22 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
         runner += 1
 
     if len(values) == 0:
-        centralized_logger.error(
+        logger.error(
             r'Not containing any data from file {} at sheet {} at column {} start from row {}'.format(
                 file_path, sheet_name, column, start_row))
         raise Exception("Not containing required data in the specified place in file Excel")
 
-    centralized_logger.info('Collect data from excel file successfully')
+    logger.info('Collect data from excel file successfully')
     return values
 
 
 def load_settings_from_file(setting_file: str) -> dict[str, str]:
+    logger = get_current_logger()
     if not os.path.exists(setting_file):
         raise Exception("The settings file {} is not existed. Please providing it !".format(setting_file))
 
     settings: dict[str, str] = {}
-    centralized_logger.info('Start loading settings from file')
+    logger.info('Start loading settings from file')
     with open(setting_file, 'r') as setting_file_stream:
         for line in setting_file_stream:
 
@@ -110,6 +112,7 @@ def extract_zip(zip_file_path: str,
                 extracted_dir: str,
                 sleep_time_before_extract: int = 1,
                 delete_all_others: bool = False) -> None:
+    logger = get_current_logger()
     time.sleep(sleep_time_before_extract)
     if not os.path.isfile(zip_file_path) or not zip_file_path.lower().endswith('.zip'):
         raise Exception('{} is not a zip file'.format(zip_file_path))
@@ -126,13 +129,13 @@ def extract_zip(zip_file_path: str,
         if not os.path.exists(extracted_dir):
             os.mkdir(extracted_dir)
 
-    centralized_logger.debug(r'Start extracting file {} into {}'.format(zip_file_path, extracted_dir))
+    logger.debug(r'Start extracting file {} into {}'.format(zip_file_path, extracted_dir))
 
     with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
         zip_ref.extractall(extracted_dir)
 
     os.remove(zip_file_path)
-    centralized_logger.debug(r'Extracting file {} to {} successfully'.format(zip_file_path, extracted_dir))
+    logger.debug(r'Extracting file {} to {} successfully'.format(zip_file_path, extracted_dir))
 
     if delete_all_others:
         current_dir: str = os.path.dirname(os.path.abspath(zip_file_path))
@@ -140,7 +143,8 @@ def extract_zip(zip_file_path: str,
 
 
 def escape_bat_file_special_chars(input_file: str = '.\\DownloadSource.py',
-                                  output_file: str = os.path.join(ROOT_DIR, 'output', 'EscapedCharsEmbeddedPythonToBat.output')) -> None:
+                                  output_file: str = os.path.join(ROOT_DIR, 'output',
+                                                                  'EscapedCharsEmbeddedPythonToBat.output')) -> None:
     if not os.path.exists(input_file):
         raise Exception('invalid input')
 
@@ -189,6 +193,7 @@ def check_parent_folder_contain_all_required_sub_folders(parent_folder: str,
 
 
 def remove_all_files_in_folder(folder_path: str, only_files: bool = False) -> None:
+    logger = get_current_logger()
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         if os.path.isfile(file_path):
@@ -196,5 +201,5 @@ def remove_all_files_in_folder(folder_path: str, only_files: bool = False) -> No
         else:
             if not only_files:
                 remove_all_files_in_folder(file_path)
-    centralized_logger.debug(
+    logger.debug(
         r'Deleted all other generated files in {} while running exception the extracted folder'.format(folder_path))

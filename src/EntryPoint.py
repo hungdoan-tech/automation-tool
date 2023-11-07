@@ -1,13 +1,15 @@
 import os
 import threading
 import importlib
+import uuid
+from logging import Logger
+from threading import Thread
 from types import ModuleType
-from typing import List
 
-from AutomatedTask import AutomatedTask
 from Utilities import load_settings_from_file, escape_bat_file_special_chars
 from Constants import ROOT_DIR
-from Logger import centralized_logger
+from AutomatedTask import AutomatedTask
+from ThreadLocalLogger import create_thread_local_logger
 
 
 def escape_special_chars_to_embedded_python_to_bat():
@@ -16,26 +18,25 @@ def escape_special_chars_to_embedded_python_to_bat():
 
 if __name__ == '__main__':
     # escape_special_chars_to_embedded_python_to_bat()
-
-    setting_file = os.path.join(ROOT_DIR, 'input', 'InvokedClasses.input')
+    setting_file: str = os.path.join(ROOT_DIR, 'input', 'InvokedClasses.input')
     settings: dict[str, str] = load_settings_from_file(setting_file)
     if settings['invoked_classes'] is None:
-        centralized_logger.error('You have not provided the needed to invoke classes/tasks')
         raise Exception('You have not provided the needed to invoke classes/tasks')
-    defined_classes: set[str] = set(settings['invoked_classes'].split(','))
+    defined_classes: list[str] = [class_name.strip() for class_name in settings['invoked_classes'].split(',')]
 
     for invoked_class in defined_classes:
-        invoked_class = invoked_class.strip()
+        logger: Logger = create_thread_local_logger(class_name=invoked_class, thread_uuid=str(uuid.uuid4()))
+
+        logger.info('Invoking class {}'.format(invoked_class))
         clazz_module: ModuleType = importlib.import_module(invoked_class)
         clazz = getattr(clazz_module, invoked_class)
 
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.input'.format(invoked_class))
         settings: dict[str, str] = load_settings_from_file(setting_file)
 
-        centralized_logger.info("-------------------------------------------------------------------------------------------------------------")
         automated_task: AutomatedTask = clazz(settings)
         automated_task.automate()
 
-        running_task_thread = threading.Thread(target=automated_task.automate,
-                                               daemon=True)
+        running_task_thread: Thread = threading.Thread(target=automated_task.automate,
+                                                       daemon=True)
         running_task_thread.start()

@@ -25,8 +25,8 @@ def download_source():
     if response.status_code == 200:
         destination_directory = os.path.join(os.path.expanduser("~"), CLOUD_MAPPING_FOLDER)
         file_name = os.path.join(destination_directory, "automated_task.zip")
-        with open(file_name, 'wb') as zip_file:
-            zip_file.write(response.content)
+        with open(file_name, 'wb') as downloaded_zip_file:
+            downloaded_zip_file.write(response.content)
         print("Download source successfully")
 
         with zipfile.ZipFile(file_name, 'r') as zip_ref:

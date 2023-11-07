@@ -12,33 +12,34 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
 from DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
-from Logger import centralized_logger
 from Utilities import validate_keys_of_settings
+from ThreadLocalLogger import get_current_logger
 
 
 class AutomatedTask:
 
     def __init__(self, settings: dict[str, str]):
+        logger = get_current_logger()
         self._settings: dict[str, str] = settings
 
         error_messages: list[str] = validate_keys_of_settings(settings, self.mandatory_settings())
         if len(error_messages) != 0:
-            centralized_logger.error(
+            logger.error(
                 'Incorrect settings has been put as below. Please correct these at{}.input'.format(__file__))
             for error in error_messages:
-                centralized_logger.error(error)
+                logger.error(error)
             raise Exception('Invalid settings!')
 
         self._downloadFolder = self._settings['download.path']
         if not os.path.isdir(self._downloadFolder):
-            centralized_logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+            logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
                                     f"not folder")
             raise Exception(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
-                                    f"not folder")
+                            f"not folder")
 
         if not os.path.exists(self._downloadFolder):
             os.makedirs(self._downloadFolder)
-            centralized_logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
+            logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
 
         if self._settings['time.unit.factor'] is None:
             self._timingFactor = 1.0
@@ -49,7 +50,7 @@ class AutomatedTask:
             self._use_gui = 'True'.lower() == str(self._settings['use.GUI']).lower()
 
         if not self._use_gui:
-            centralized_logger.info('Run in headless mode')
+            logger.info('Run in headless mode')
 
         browser_driver: str = get_full_browser_driver_path()
         self._driver = self._setup_driver(browser_driver)
@@ -100,7 +101,8 @@ class AutomatedTask:
         return driver
 
     def _wait_download_file_complete(self, file_path: str) -> None:
-        centralized_logger.info(r'Waiting for downloading {} complete'.format(file_path))
+        logger = get_current_logger()
+        logger.info(r'Waiting for downloading {} complete'.format(file_path))
         attempt_counting: int = 0
         max_attempt: int = 60 * 3
         while True:
@@ -113,9 +115,10 @@ class AutomatedTask:
                 continue
 
             break
-        centralized_logger.info(r'Downloading {} complete'.format(file_path))
+        logger.info(r'Downloading {} complete'.format(file_path))
 
     def _wait_navigating_to_other_page_complete(self, previous_url: str, expected_end_with: str = None) -> None:
+        logger = get_current_logger()
         attempt_counting: int = 0
         max_attempt: int = 30
         while True:
@@ -125,13 +128,13 @@ class AutomatedTask:
                 raise Exception('The webapp is not navigating as expected, previous url is{}'.format(previous_url))
 
             if current_url == previous_url:
-                centralized_logger.debug('Still waiting for {}\'s changing'.format(previous_url))
+                logger.debug('Still waiting for {}\'s changing'.format(previous_url))
                 time.sleep(1 * self._timingFactor)
                 attempt_counting += 1
                 continue
 
             if expected_end_with is not None and not current_url.endswith(expected_end_with):
-                centralized_logger.warning('It has been navigated to {}'.format(current_url))
+                logger.warning('It has been navigated to {}'.format(current_url))
                 time.sleep(1 * self._timingFactor)
                 attempt_counting += 1
                 continue
