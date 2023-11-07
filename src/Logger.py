@@ -9,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 from Constants import LOG_FOLDER
 
 
-def create_logger(class_name: str, level: int = logging.INFO) -> Logger:
+def create_logger(class_name: str, logging_console_level: int = logging.INFO) -> Logger:
     logger: Logger = logging.getLogger(class_name)
 
     if not os.path.exists(LOG_FOLDER):
@@ -18,10 +18,10 @@ def create_logger(class_name: str, level: int = logging.INFO) -> Logger:
     file_handler: FileHandler = RotatingFileHandler(os.path.join(LOG_FOLDER, 'Automated_Tasks.log'),
                                                     maxBytes=1024 * 1000 * 10,
                                                     backupCount=3)
-    file_handler.setLevel(level)
+    file_handler.setLevel(logging.DEBUG)
 
     console_handler: StreamHandler[TextIO] = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(level)
+    console_handler.setLevel(logging_console_level)
 
     formatter: Formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s %(funcName)s %(lineno)d: %(message)s')
     file_handler.setFormatter(formatter)
@@ -29,7 +29,7 @@ def create_logger(class_name: str, level: int = logging.INFO) -> Logger:
 
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    logger.setLevel(level)
+    logger.setLevel(logging.DEBUG)
 
     return logger
 

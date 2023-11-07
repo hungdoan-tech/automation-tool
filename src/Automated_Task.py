@@ -102,7 +102,7 @@ class AutomatedTask:
             break
         centralized_logger.info(r'Downloading {} complete'.format(file_path))
 
-    def _wait_navigating_to_other_page_complete(self, previous_url) -> None:
+    def _wait_navigating_to_other_page_complete(self, previous_url: str, expected_end_with: str = None) -> None:
         attempt_counting: int = 0
         max_attempt: int = 30
         while True:
@@ -112,6 +112,13 @@ class AutomatedTask:
                 raise Exception('The webapp is not navigating as expected, previous url is{}'.format(previous_url))
 
             if current_url == previous_url:
+                centralized_logger.debug('Still waiting for {}\'s changing'.format(previous_url))
+                time.sleep(1 * self._timingFactor)
+                attempt_counting += 1
+                continue
+
+            if expected_end_with is not None and not current_url.endswith(expected_end_with):
+                centralized_logger.warning('It has been navigated to {}'.format(current_url))
                 time.sleep(1 * self._timingFactor)
                 attempt_counting += 1
                 continue
