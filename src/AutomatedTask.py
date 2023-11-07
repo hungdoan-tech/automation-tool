@@ -11,14 +11,23 @@ from selenium.webdriver.support.expected_conditions import AnyDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-from Download_Driver import place_suitable_chromedriver, get_full_browser_driver_path
+from DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
 from Logger import centralized_logger
+from Utilities import validate_keys_of_settings
 
 
 class AutomatedTask:
 
     def __init__(self, settings: dict[str, str]):
         self._settings: dict[str, str] = settings
+
+        error_messages: list[str] = validate_keys_of_settings(settings, self.mandatory_settings())
+        if len(error_messages) != 0:
+            centralized_logger.error(
+                'Incorrect settings has been put as below. Please correct these at{}.input'.format(__file__))
+            for error in error_messages:
+                centralized_logger.error(error)
+            raise Exception('Invalid settings!')
 
         self._downloadFolder = self._settings['download.path']
         if not os.path.isdir(self._downloadFolder):
@@ -44,6 +53,10 @@ class AutomatedTask:
 
         browser_driver: str = get_full_browser_driver_path()
         self._driver = self._setup_driver(browser_driver)
+
+    @abstractmethod
+    def mandatory_settings(self) -> set[str]:
+        pass
 
     @abstractmethod
     def automate(self):

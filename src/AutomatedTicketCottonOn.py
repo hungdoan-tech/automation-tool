@@ -8,7 +8,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
-from Automated_Task import AutomatedTask
+from AutomatedTask import AutomatedTask
 from Utilities import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, join_set_of_elements
 from Logger import centralized_logger
@@ -19,6 +19,11 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
     def __init__(self, settings: dict[str, str]):
         super().__init__(settings)
+
+    def mandatory_settings(self) -> set[str]:
+        mandatory_keys: set[str] = {'username', 'password', 'excel.path', 'excel.sheet',
+                                     'excel.read_column.start_cell', 'download.path'}
+        return mandatory_keys
 
     def automate(self) -> None:
         centralized_logger.info("-------------------------------------------------------------------------------------------------------------")
@@ -145,8 +150,9 @@ class AutomatedTicketCottonOn(AutomatedTask):
         full_file_path: str = os.path.join(self._downloadFolder, booking +
                                            self.__ticket_cotton_on_file_download_extension)
         self._wait_download_file_complete(full_file_path)
-        extract_zip_task = threading.Thread(target=extract_zip, args=(full_file_path, self._downloadFolder, 1, True))
-        extract_zip_task.daemon = True
+        extract_zip_task = threading.Thread(target=extract_zip,
+                                            args=(full_file_path, self._downloadFolder, 1, True),
+                                            daemon=True)
         extract_zip_task.start()
 
         # click to back to the overview Booking page

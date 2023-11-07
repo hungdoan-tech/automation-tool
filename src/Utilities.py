@@ -10,6 +10,7 @@ from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 from Logger import centralized_logger
+from Constants import ROOT_DIR
 
 
 def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> set[str]:
@@ -54,9 +55,10 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
 
 
 def load_settings_from_file(setting_file: str) -> dict[str, str]:
+    if not os.path.exists(setting_file):
+        raise Exception("The settings file {} is not existed. Please providing it !".format(setting_file))
+
     settings: dict[str, str] = {}
-    mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet',
-                                 'excel.read_column.start_cell', 'download.path']
     centralized_logger.info('Start loading settings from file')
     with open(setting_file, 'r') as setting_file_stream:
         for line in setting_file_stream:
@@ -70,21 +72,13 @@ def load_settings_from_file(setting_file: str) -> dict[str, str]:
             value: str = key_value[1].strip()
             settings[key] = value
 
-    error_messages: list[str] = validate_keys_of_settings(settings, mandatory_keys)
-    if len(error_messages) != 0:
-        centralized_logger.error(
-            'Incorrect settings has been put as below. Please correct these at{}'.format(setting_file))
-        for error in error_messages:
-            centralized_logger.error(error)
-        raise Exception('Invalid settings!')
-
     return settings
 
 
 def validate_keys_of_settings(settings: dict[str, str],
-                              mandatory_keys: list[str]) -> list[str]:
+                              mandatory_settings: set[str]) -> list[str]:
     error_messages: list[str] = []
-    for key in mandatory_keys:
+    for key in mandatory_settings:
 
         value = settings[str(key)]
         if value is None:
@@ -145,8 +139,8 @@ def extract_zip(zip_file_path: str,
         remove_all_files_in_folder(current_dir, True)
 
 
-def escape_bat_file_special_chars(input_file: str = '.\\Download_Source.py',
-                                  output_file: str = '.\\Escaped_Chars_Embedded_Python_To_Bat.output') -> None:
+def escape_bat_file_special_chars(input_file: str = '.\\DownloadSource.py',
+                                  output_file: str = os.path.join(ROOT_DIR, 'output', 'EscapedCharsEmbeddedPythonToBat.output')) -> None:
     if not os.path.exists(input_file):
         raise Exception('invalid input')
 

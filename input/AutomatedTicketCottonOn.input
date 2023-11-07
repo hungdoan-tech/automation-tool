@@ -32,5 +32,5 @@ excel.path = D:\hung.xlsx
 excel.sheet = test
 excel.read_column.start_cell = E7
 
-use.GUI = False
+use.GUI = True
 time.unit.factor = 1
