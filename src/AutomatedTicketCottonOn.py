@@ -2,6 +2,8 @@ import os
 import time
 import threading
 import datetime
+import uuid
+from logging import Logger
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -11,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from AutomatedTask import AutomatedTask
 from Utilities import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, join_set_of_elements
-from ThreadLocalLogger import get_current_logger
+from ThreadLocalLogger import get_current_logger, create_thread_local_logger
 from Constants import zip_extension
 
 
@@ -26,7 +28,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         return mandatory_keys
 
     def automate(self) -> None:
-        logger = get_current_logger()
+        logger: Logger = create_thread_local_logger(class_name=__file__, thread_uuid=str(uuid.uuid4()))
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
         logger.info("Start processing")
@@ -156,7 +158,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,
                                             args=(full_file_path, self._downloadFolder, 1, True),
-                                            daemon=True)
+                                            daemon=False)
         extract_zip_task.start()
 
         # click to back to the overview Booking page

@@ -24,6 +24,7 @@ if __name__ == '__main__':
         raise Exception('You have not provided the needed to invoke classes/tasks')
     defined_classes: list[str] = [class_name.strip() for class_name in settings['invoked_classes'].split(',')]
 
+    running_threads: list[Thread] = []
     for invoked_class in defined_classes:
         logger: Logger = create_thread_local_logger(class_name=invoked_class, thread_uuid=str(uuid.uuid4()))
 
@@ -35,8 +36,10 @@ if __name__ == '__main__':
         settings: dict[str, str] = load_settings_from_file(setting_file)
 
         automated_task: AutomatedTask = clazz(settings)
-        automated_task.automate()
-
         running_task_thread: Thread = threading.Thread(target=automated_task.automate,
-                                                       daemon=True)
+                                                       daemon=False)
         running_task_thread.start()
+        running_threads.append(automated_task)
+
+    for thread in running_threads:
+        thread.join(timeout=5 * 60)
