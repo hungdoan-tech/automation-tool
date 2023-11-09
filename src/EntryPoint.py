@@ -18,6 +18,7 @@ def escape_special_chars_to_embedded_python_to_bat():
 
 if __name__ == '__main__':
     # escape_special_chars_to_embedded_python_to_bat()
+
     setting_file: str = os.path.join(ROOT_DIR, 'input', 'InvokedClasses.input')
     settings: dict[str, str] = load_settings_from_file(setting_file)
     if settings['invoked_classes'] is None:

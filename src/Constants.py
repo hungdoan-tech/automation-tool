@@ -8,4 +8,4 @@ PATH_TO_DRIVER = os.path.join(ROOT_DIR, 'chrome_driver')
 PREFIX_DRIVER_NAME = 'chromedriver-'
 DRIVER_EXTENSION = '.exe'
 
-zip_extension = '.zip'
+ZIP_EXTENSION = '.zip'

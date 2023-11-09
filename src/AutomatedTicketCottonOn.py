@@ -14,7 +14,7 @@ from AutomatedTask import AutomatedTask
 from Utilities import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, join_set_of_elements
 from ThreadLocalLogger import get_current_logger, create_thread_local_logger
-from Constants import zip_extension
+from Constants import ZIP_EXTENSION
 
 
 class AutomatedTicketCottonOn(AutomatedTask):
@@ -154,7 +154,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div[data-cy=shipment-documents-box] '
                                                                    'div:nth-child(2) button')
 
-        full_file_path: str = os.path.join(self._downloadFolder, booking + zip_extension)
+        full_file_path: str = os.path.join(self._downloadFolder, booking + ZIP_EXTENSION)
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,
                                             args=(full_file_path, self._downloadFolder, 1, True),

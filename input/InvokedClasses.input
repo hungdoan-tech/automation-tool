@@ -1,1 +1,4 @@
+# Define all the tasks you want to run concurrently in field invoked_classes
+# tasks need to be separated by commas e.g AutomatedTicketCottonOn, ABCTask
+
 invoked_classes = AutomatedTicketCottonOn
