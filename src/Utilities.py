@@ -1,6 +1,8 @@
 import os.path
 import re
 import copy
+from logging import Logger
+
 import openpyxl
 import zipfile
 import time
@@ -14,7 +16,7 @@ from ThreadLocalLogger import get_current_logger
 
 
 def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> set[str]:
-    logger = get_current_logger()
+    logger: Logger = get_current_logger()
     column: str = 'A'
     start_row: int = 0
 
@@ -56,7 +58,7 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
 
 
 def load_settings_from_file(setting_file: str) -> dict[str, str]:
-    logger = get_current_logger()
+    logger: Logger = get_current_logger()
     if not os.path.exists(setting_file):
         raise Exception("The settings file {} is not existed. Please providing it !".format(setting_file))
 
@@ -78,7 +80,8 @@ def load_settings_from_file(setting_file: str) -> dict[str, str]:
 
 
 def validate_keys_of_settings(settings: dict[str, str],
-                              mandatory_settings: set[str]) -> list[str]:
+                              mandatory_settings: set[str]) -> None:
+    logger: Logger = get_current_logger()
     error_messages: list[str] = []
     for key in mandatory_settings:
 
@@ -89,7 +92,12 @@ def validate_keys_of_settings(settings: dict[str, str],
         if len(value) == 0:
             error_messages.append('{} is missing'.format(key))
 
-    return error_messages
+    if len(error_messages) != 0:
+        logger.error(
+            'Incorrect settings : '.format(__file__))
+        for error in error_messages:
+            logger.error(error)
+        raise Exception('Invalid settings!')
 
 
 def decode_url(url: str) -> str:
@@ -112,7 +120,7 @@ def extract_zip(zip_file_path: str,
                 extracted_dir: str,
                 sleep_time_before_extract: int = 1,
                 delete_all_others: bool = False) -> None:
-    logger = get_current_logger()
+    logger: Logger = get_current_logger()
     time.sleep(sleep_time_before_extract)
     if not os.path.isfile(zip_file_path) or not zip_file_path.lower().endswith('.zip'):
         raise Exception('{} is not a zip file'.format(zip_file_path))
@@ -135,7 +143,7 @@ def extract_zip(zip_file_path: str,
         zip_ref.extractall(extracted_dir)
 
     os.remove(zip_file_path)
-    logger.debug(r'Extracting file {} to {} successfully'.format(zip_file_path, extracted_dir))
+    logger.debug(r'Extracted successfully file {} to {}'.format(zip_file_path, extracted_dir))
 
     if delete_all_others:
         current_dir: str = os.path.dirname(os.path.abspath(zip_file_path))
@@ -193,7 +201,7 @@ def check_parent_folder_contain_all_required_sub_folders(parent_folder: str,
 
 
 def remove_all_files_in_folder(folder_path: str, only_files: bool = False) -> None:
-    logger = get_current_logger()
+    logger: Logger = get_current_logger()
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         if os.path.isfile(file_path):

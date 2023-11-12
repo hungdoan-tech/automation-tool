@@ -43,13 +43,6 @@ if not exist "%SOURCE_PATH%" (
     call "%SCRIPT_PATH%"\download_source_code.bat
 )
 
-:check_input_file
-echo - Checking the mandatory input file is exist or not
-if not exist "%SOURCE_PATH%"\input\settings.input (
-    echo Please provide the settings.input with mandatory info at "%SOURCE_PATH%"\input\settings.input
-    goto :eof
-)
-
 :invoke_file
 echo - Invoking the entry point with virtual environment
 call "%VENV_PATH%"\Scripts\activate
@@ -73,4 +66,5 @@ call python "%IDEAL_ENTRY_POINT%"
 call "%VENV_PATH%"\Scripts\deactivate
 
 endlocal
+pause
 :eof

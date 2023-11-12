@@ -2,7 +2,6 @@ import os
 import time
 import threading
 import datetime
-import uuid
 from logging import Logger
 
 from selenium.webdriver.common.by import By
@@ -13,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from AutomatedTask import AutomatedTask
 from Utilities import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, join_set_of_elements
-from ThreadLocalLogger import get_current_logger, create_thread_local_logger
+from ThreadLocalLogger import get_current_logger
 from Constants import ZIP_EXTENSION
 
 
@@ -28,7 +27,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         return mandatory_keys
 
     def automate(self) -> None:
-        logger: Logger = create_thread_local_logger(class_name=__file__, thread_uuid=str(uuid.uuid4()))
+        logger: Logger = get_current_logger()
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
         logger.info("Start processing")
@@ -69,7 +68,6 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         # Pause and wait for the user to press Enter
         logger.info("It ends at {}. Press any key to end program...".format(datetime.datetime.now()))
-        input()
 
     def __login(self) -> None:
         username: str = self._settings['username']
@@ -80,7 +78,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='button[type=submit]')
 
     def __check_up_all_downloads(self, booking_ids: set[str], last_booking: str) -> None:
-        logger = get_current_logger()
+        logger: Logger = get_current_logger()
         last_booking_downloaded_folder: str = os.path.join(self._downloadFolder, last_booking)
         self._wait_download_file_complete(last_booking_downloaded_folder)
 
@@ -99,7 +97,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
             logger.info(successful_bookings)
 
     def __navigate_and_download(self, booking: str) -> None:
-        logger = get_current_logger()
+        logger: Logger = get_current_logger()
         search_box: WebElement = self._type_when_element_present(by=By.CSS_SELECTOR,
                                                                  value='div[data-cy=search] input',
                                                                  content=booking)
@@ -117,7 +115,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
                 logger.info('Clicked option_booking for {} successfully'.format(booking))
                 break
             except Exception as exception:
-                logger.error(exception.args[0] if exception.args else None)
+                logger.error(str(exception))
 
                 time.sleep(1 * self._timingFactor)
                 self._driver.execute_script("arguments[0].value = '{}';".format(booking), search_box)

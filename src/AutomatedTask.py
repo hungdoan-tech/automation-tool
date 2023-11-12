@@ -1,7 +1,9 @@
 import os
 import time
 import logging
+import uuid
 
+from logging import Logger
 from abc import abstractmethod
 from typing import Callable
 from selenium import webdriver
@@ -13,22 +15,21 @@ from selenium.webdriver.support import expected_conditions
 
 from DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
 from Utilities import validate_keys_of_settings
-from ThreadLocalLogger import get_current_logger
+from ThreadLocalLogger import get_current_logger, create_thread_local_logger
 
 
 class AutomatedTask:
 
+    _setting: set[str] = None
+
     def __init__(self, settings: dict[str, str]):
-        logger = get_current_logger()
+        logger: Logger = get_current_logger()
         self._settings: dict[str, str] = settings
 
-        error_messages: list[str] = validate_keys_of_settings(settings, self.mandatory_settings())
-        if len(error_messages) != 0:
-            logger.error(
-                'Incorrect settings has been put as below. Please correct these at{}.input'.format(__file__))
-            for error in error_messages:
-                logger.error(error)
-            raise Exception('Invalid settings!')
+        mandatory_settings = self.mandatory_settings()
+        mandatory_settings.add('invoked_class')
+        validate_keys_of_settings(settings, mandatory_settings)
+        _setting = settings
 
         self._downloadFolder = self._settings['download.path']
         if not os.path.isdir(self._downloadFolder):
@@ -62,6 +63,14 @@ class AutomatedTask:
     @abstractmethod
     def automate(self):
         pass
+
+    def perform(self):
+        logger: Logger = create_thread_local_logger(class_name=self._settings['invoked_class'],
+                                                    thread_uuid=str(uuid.uuid4()))
+        try:
+            self.automate()
+        except Exception as exception:
+            logger.info(str(exception))
 
     def _setup_driver(self,
                       browser_driver: str) -> WebDriver:
@@ -101,7 +110,7 @@ class AutomatedTask:
         return driver
 
     def _wait_download_file_complete(self, file_path: str) -> None:
-        logger = get_current_logger()
+        logger: Logger = get_current_logger()
         logger.info(r'Waiting for downloading {} complete'.format(file_path))
         attempt_counting: int = 0
         max_attempt: int = 60 * 3
@@ -118,7 +127,7 @@ class AutomatedTask:
         logger.info(r'Downloading {} complete'.format(file_path))
 
     def _wait_navigating_to_other_page_complete(self, previous_url: str, expected_end_with: str = None) -> None:
-        logger = get_current_logger()
+        logger: Logger = get_current_logger()
         attempt_counting: int = 0
         max_attempt: int = 30
         while True:

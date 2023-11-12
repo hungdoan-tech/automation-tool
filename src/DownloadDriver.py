@@ -1,4 +1,3 @@
-import logging
 import os
 
 import requests
@@ -6,13 +5,14 @@ import zipfile
 import wget
 import re
 
+from logging import Logger
 from Utilities import remove_all_files_in_folder
 from Constants import PATH_TO_DRIVER, PREFIX_DRIVER_NAME, DRIVER_EXTENSION
 from ThreadLocalLogger import get_current_logger
 
 
 def get_latest_version_from_google(base_number_version: str) -> str:
-    logger: logging.Logger = get_current_logger()
+    logger: Logger = get_current_logger()
     url: str
     if int(base_number_version) < 115:
         url = 'https://chromedriver.storage.googleapis.com/LATEST_RELEASE_' + str(base_number_version)
@@ -26,7 +26,7 @@ def get_latest_version_from_google(base_number_version: str) -> str:
 
 
 def get_current_local_chrome_base_version() -> str:
-    logger: logging.Logger = get_current_logger()
+    logger: Logger = get_current_logger()
     base_number_version: str = '119'
     chrome_registry = os.popen(r'reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version')
     replies = chrome_registry.read()
@@ -46,7 +46,7 @@ def get_current_local_chrome_base_version() -> str:
 
 
 def place_suitable_chromedriver():
-    logger: logging.Logger = get_current_logger()
+    logger: Logger = get_current_logger()
     base_driver_version: str = get_current_local_chrome_base_version()
     destination_path: str = os.path.join(PATH_TO_DRIVER, PREFIX_DRIVER_NAME + base_driver_version + DRIVER_EXTENSION)
 
