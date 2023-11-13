@@ -1,9 +1,9 @@
 import os
 import time
 import threading
-import datetime
-from logging import Logger
 
+from datetime import datetime, timedelta
+from logging import Logger
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,8 +11,8 @@ from selenium.webdriver.support import expected_conditions as ec
 
 from src.AutomatedTask import AutomatedTask
 from src.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
-    check_parent_folder_contain_all_required_sub_folders
-from src.StringUtil import  join_set_of_elements
+    check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
+from src.StringUtil import join_set_of_elements
 from src.ThreadLocalLogger import get_current_logger
 from src.Constants import ZIP_EXTENSION
 
@@ -156,7 +156,8 @@ class AutomatedTicketCottonOn(AutomatedTask):
         full_file_path: str = os.path.join(self._downloadFolder, booking + ZIP_EXTENSION)
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,
-                                            args=(full_file_path, self._downloadFolder, 1, True),
+                                            args=(full_file_path, self._downloadFolder,
+                                                  self.delete_redundant_opening_pdf_files, None),
                                             daemon=False)
         extract_zip_task.start()
 
@@ -164,3 +165,11 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR,
                                                     value='.MuiBreadcrumbs-ol .MuiBreadcrumbs-li:nth-child(1)')
         logger.info("Navigating back to overview Booking page")
+
+    @staticmethod
+    def delete_redundant_opening_pdf_files(self, download_folder: str) -> None:
+
+        remove_all_in_folder(folder_path=download_folder,
+                             only_files=True,
+                             file_extension="pdf",
+                             elapsed_time=timedelta(minutes=2))

@@ -6,7 +6,7 @@ import wget
 import re
 
 from logging import Logger
-from src.FileUtil import remove_all_files_in_folder
+from src.FileUtil import remove_all_in_folder
 from src.Constants import PATH_TO_DRIVER, PREFIX_DRIVER_NAME, DRIVER_EXTENSION
 from src.ThreadLocalLogger import get_current_logger
 
@@ -77,7 +77,7 @@ def place_suitable_chromedriver():
         os.rename(os.path.join(full_path_extracted_folder, 'chromedriver.exe'), destination_path)
         os.chmod(destination_path, 777)
 
-        remove_all_files_in_folder(full_path_extracted_folder)
+        remove_all_in_folder(full_path_extracted_folder)
         os.rmdir(full_path_extracted_folder)
         logger.info('Chrome driver will be placed at {} for further operations'.format(destination_path))
 

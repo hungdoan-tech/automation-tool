@@ -35,7 +35,7 @@ class ResourceLock(object):
         self.__timeout = timeout
         self.__delay = delay
         self.__open_lock_file = None
-        self.__content = content
+        self.__content = '' if content is None else content
 
     def acquire(self):
         """ Acquire the lock, if possible. If the lock is in use, it checks again
@@ -77,10 +77,10 @@ class ResourceLock(object):
             Should automatically acquire a lock to be used in the with block.
         """
         logger = get_current_logger()
-        logger.debug("{} Enter __enter__".format("Append " + self.__content))
+        logger.debug("{} Enter __enter__".format(self.__content))
         if not self.__is_locked:
             self.acquire()
-        logger.debug("{} End __enter__".format("Append " + self.__content))
+        logger.debug("{} End __enter__".format(self.__content))
         return self
 
     def __exit__(self, type, value, traceback):
@@ -88,13 +88,13 @@ class ResourceLock(object):
             It automatically releases the lock if it isn't locked.
         """
         logger = get_current_logger()
-        logger.debug("{} Enter __exit__".format("Append " + self.__content))
+        logger.debug("{} Enter __exit__".format(self.__content))
         if type is not None:
             print(f"An exception of type {type} occurred with value {value}")
 
         if self.__is_locked:
             self.release()
-        logger.debug("{} End __exit__".format("Append " + self.__content))
+        logger.debug("{} End __exit__".format(self.__content))
 
     def __del__(self):
         """

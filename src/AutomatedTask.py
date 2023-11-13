@@ -28,7 +28,7 @@ class AutomatedTask:
         mandatory_settings = self.mandatory_settings()
         mandatory_settings.add('invoked_class')
         validate_keys_of_dictionary(settings, mandatory_settings)
-        _setting = settings
+        self._setting = settings
 
         self._downloadFolder = self._settings['download.path']
         if not os.path.isdir(self._downloadFolder):

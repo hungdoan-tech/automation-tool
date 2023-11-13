@@ -1,10 +1,12 @@
 import re
 import copy
+from typing import Callable
+
 import openpyxl
 import zipfile
-import time
 import os
 
+from datetime import datetime, timedelta
 from logging import Logger
 from openpyxl.cell.cell import Cell
 from openpyxl.workbook.workbook import Workbook
@@ -87,10 +89,9 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
 
 def extract_zip(zip_file_path: str,
                 extracted_dir: str,
-                sleep_time_before_extract: int = 1,
-                delete_all_others: bool = False) -> None:
+                callback_on_root_folder: Callable[[str], None],
+                callback_on_extracted_folder: Callable[[str], None]) -> None:
     logger: Logger = get_current_logger()
-    time.sleep(sleep_time_before_extract)
     if not os.path.isfile(zip_file_path) or not zip_file_path.lower().endswith('.zip'):
         raise Exception('{} is not a zip file'.format(zip_file_path))
 
@@ -105,6 +106,8 @@ def extract_zip(zip_file_path: str,
         extracted_dir = r'{}{}'.format(extracted_dir, clean_file_name)
         if not os.path.exists(extracted_dir):
             os.mkdir(extracted_dir)
+            if callback_on_extracted_folder is not None:
+                callback_on_extracted_folder(extracted_dir)
 
     logger.debug(r'Start extracting file {} into {}'.format(zip_file_path, extracted_dir))
 
@@ -116,9 +119,9 @@ def extract_zip(zip_file_path: str,
     os.remove(zip_file_path)
     logger.debug(r'Extracted successfully file {} to {}'.format(zip_file_path, extracted_dir))
 
-    if delete_all_others:
+    if callback_on_root_folder is not None:
         current_dir: str = os.path.dirname(os.path.abspath(zip_file_path))
-        remove_all_files_in_folder(current_dir, True)
+        callback_on_root_folder(current_dir)
 
 
 def check_parent_folder_contain_all_required_sub_folders(parent_folder: str,
@@ -137,16 +140,27 @@ def check_parent_folder_contain_all_required_sub_folders(parent_folder: str,
         return is_all_contained, contained_set, not_contained_set
 
 
-def remove_all_files_in_folder(folder_path: str, only_files: bool = False) -> None:
+def remove_all_in_folder(folder_path: str,
+                         only_files: bool = False,
+                         file_extension: str = None,
+                         elapsed_time: timedelta = None) -> None:
     logger: Logger = get_current_logger()
     with ResourceLock(file_path=folder_path):
 
         for filename in os.listdir(folder_path):
             file_path = os.path.join(folder_path, filename)
             if os.path.isfile(file_path):
-                os.remove(file_path)
+                if file_extension is None:
+                    os.remove(file_path)
+
+                if not file_path.endswith(file_extension):
+                    continue
+
+                since_datetime = datetime.now() - elapsed_time
+                if datetime.fromtimestamp(os.path.getctime(file_path)) > since_datetime:
+                    os.remove(file_path)
             else:
                 if not only_files:
-                    remove_all_files_in_folder(file_path)
+                    remove_all_in_folder(file_path)
         logger.debug(
-            r'Deleted all other generated files in {} while running exception the extracted folder'.format(folder_path))
+            r'Deleted all {} in folder {}'.format(file_extension, folder_path))
