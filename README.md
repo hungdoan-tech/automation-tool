@@ -16,8 +16,8 @@ set OneDrive_Mapping_Folder=OneDrive - ABCXYZ
 set OneDrive_Mapping_Folder=OneDrive - ABCXYZ
 cd %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool
 
-### - Provide mandatory info at .\input\settings.input
-notepad %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\input\settings.input
+### - Provide mandatory info at .\input\InvokedClasses.properties and its subsequence properties file which stand for the setting of each running task 
+notepad %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\input\InvokedClasses.properties
 
 ### - Perform the provided automation task by invoke _start_app_
 %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\start_app.bat

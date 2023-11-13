@@ -6,12 +6,12 @@ import threading
 from logging import Logger, FileHandler, StreamHandler, Formatter
 from logging.handlers import RotatingFileHandler
 from typing import TextIO
-from Constants import LOG_FOLDER
+from src.Constants import LOG_FOLDER
 
 thread_local_logger = threading.local()
 
 
-def create_thread_local_logger(class_name: str, thread_uuid: str, logging_console_level: int = logging.DEBUG) -> Logger:
+def create_thread_local_logger(class_name: str, thread_uuid: str, logging_console_level: int = logging.INFO) -> Logger:
     thread_local_logger.logger = create_logger(class_name=class_name,
                                                thread_uuid=thread_uuid,
                                                logging_console_level=logging_console_level)
@@ -25,14 +25,14 @@ def get_current_logger() -> Logger:
         if default_logger.level == logging.NOTSET:
             thread_local_logger.logger = create_thread_local_logger(class_name='DefaultLogger',
                                                                     thread_uuid='DefaultUUID',
-                                                                    logging_console_level=logging.DEBUG)
+                                                                    logging_console_level=logging.INFO)
         else:
             thread_local_logger.logger = default_logger
 
     return thread_local_logger.logger
 
 
-def create_logger(class_name: str, thread_uuid: str, logging_console_level: int = logging.DEBUG) -> Logger:
+def create_logger(class_name: str, thread_uuid: str, logging_console_level: int = logging.INFO) -> Logger:
     class_name: str = os.path.splitext(os.path.basename(class_name))[0]
     created_logger: Logger = logging.getLogger(class_name)
 

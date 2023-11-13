@@ -13,13 +13,12 @@ from selenium.webdriver.support.expected_conditions import AnyDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-from DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
-from Utilities import validate_keys_of_settings
-from ThreadLocalLogger import get_current_logger, create_thread_local_logger
+from src.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
+from src.StringUtil import validate_keys_of_dictionary
+from src.ThreadLocalLogger import get_current_logger, create_thread_local_logger
 
 
 class AutomatedTask:
-
     _setting: set[str] = None
 
     def __init__(self, settings: dict[str, str]):
@@ -28,7 +27,7 @@ class AutomatedTask:
 
         mandatory_settings = self.mandatory_settings()
         mandatory_settings.add('invoked_class')
-        validate_keys_of_settings(settings, mandatory_settings)
+        validate_keys_of_dictionary(settings, mandatory_settings)
         _setting = settings
 
         self._downloadFolder = self._settings['download.path']
@@ -137,7 +136,7 @@ class AutomatedTask:
                 raise Exception('The webapp is not navigating as expected, previous url is{}'.format(previous_url))
 
             if current_url == previous_url:
-                logger.debug('Still waiting for {}\'s changing'.format(previous_url))
+                logger.info('Still waiting for {}\'s changing'.format(previous_url))
                 time.sleep(1 * self._timingFactor)
                 attempt_counting += 1
                 continue
