@@ -14,7 +14,7 @@ if __name__ == "__main__":
     def write_lines(line, repeat=10):
         global logger  # Use the shared logger
         logger.info('{} Protecting file: {}'.format('Append ' + line[0], path))
-        resource_lock = ResourceLock(path, content=line[0])
+        resource_lock = ResourceLock(path, content='Try to append ' + line[0])
         with resource_lock:
             for _ in range(repeat):
                 with open(path, 'a') as tf:
