@@ -26,7 +26,7 @@ if __name__ == "__main__":
         logger: Logger = get_current_logger()
         logger.info('Invoking class {}'.format(invoked_class))
 
-        clazz_module: ModuleType = importlib.import_module(invoked_class)
+        clazz_module: ModuleType = importlib.import_module('src.' + invoked_class)
         clazz = getattr(clazz_module, invoked_class)
 
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(invoked_class))

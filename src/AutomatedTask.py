@@ -31,7 +31,7 @@ class AutomatedTask:
         self._setting = settings
 
         self._downloadFolder = self._settings['download.path']
-        if not os.path.isdir(self._downloadFolder):
+        if os.path.isfile(self._downloadFolder):
             logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
                         f"not folder")
             raise Exception(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "

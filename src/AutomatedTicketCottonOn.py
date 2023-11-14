@@ -68,7 +68,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self.__check_up_all_downloads(booking_ids, last_booking)
 
         # Pause and wait for the user to press Enter
-        logger.info("It ends at {}. Press any key to end program...".format(datetime.datetime.now()))
+        logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
 
     def __login(self) -> None:
         username: str = self._settings['username']
@@ -167,7 +167,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         logger.info("Navigating back to overview Booking page")
 
     @staticmethod
-    def delete_redundant_opening_pdf_files(self, download_folder: str) -> None:
+    def delete_redundant_opening_pdf_files(download_folder: str) -> None:
 
         remove_all_in_folder(folder_path=download_folder,
                              only_files=True,

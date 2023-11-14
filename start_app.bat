@@ -47,17 +47,19 @@ if not exist "%SOURCE_PATH%" (
 echo - Invoking the entry point with virtual environment
 call "%VENV_PATH%"\Scripts\activate
 
-set LOCAL_ENTRY_POINT=%CD%\src\EntryPoint.py
-set IDEAL_ENTRY_POINT=%SOURCE_PATH%\src\EntryPoint.py
+set LOCAL_ENTRY_POINT=%CD%
+set IDEAL_ENTRY_POINT=%SOURCE_PATH%
 
 if exist "%LOCAL_ENTRY_POINT%" (
     echo Try to find and invoke Entry Point at %LOCAL_ENTRY_POINT%
-    call "%VENV_PATH%"\bin\python "%LOCAL_ENTRY_POINT%"
+    set PYTHONPATH=%LOCAL_ENTRY_POINT%
+    call python -m src.EntryPoint
     goto :deactivate_vir_env
 )
 
 echo Try to find and invoke ideal Entry Point at %IDEAL_ENTRY_POINT%
-call "%VENV_PATH%"\bin\python "%IDEAL_ENTRY_POINT%"
+set PYTHONPATH=%LOCAL_ENTRY_POINT%
+call python src.EntryPoint
 
 :deactivate_vir_env
 call "%VENV_PATH%"\Scripts\deactivate
