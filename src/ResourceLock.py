@@ -11,10 +11,10 @@ class ResourceLockException(Exception):
 
 class ResourceLock(object):
     """
-        Implement class ResourceLock - a pessimistic lock mechanism based on file
+        ResourceLock - a pessimistic lock mechanism based on file
         / support for multithreading
         / for running automated tasks simultaneously (in this project)
-        when each task could deal with the same resource, I want when this one has privileges to a resource, it must keep it
+        Each task could deal with the same resource, I want when this task has privileges to a resource, it must keep it
         until complete the critical section of itself, avoid data inconsistency on files' content or folder files' existence
 
         A file locking mechanism that has context-manager support, so
@@ -22,7 +22,8 @@ class ResourceLock(object):
         compatible as it doesn't rely on msvcrt or fcntl for the locking.
     """
 
-    def __init__(self, file_path: str, timeout: int = 60 * 2, delay: float = 0.5, content: str = None):
+    def __init__(self, file_path: str, timeout: int = 60 * 2, delay: float = 0.5,
+                 log_make_clear_distinction_lock: str = None):
         """ Prepare the file locker. Specify the file to lock and optionally
             the maximum timeout and the delay between each attempt to lock.
         """
@@ -35,7 +36,7 @@ class ResourceLock(object):
         self.__timeout = timeout
         self.__delay = delay
         self.__open_lock_file = None
-        self.__content = '' if content is None else content
+        self.__logged_content = '' if log_make_clear_distinction_lock is None else log_make_clear_distinction_lock
 
     def acquire(self):
         """ Acquire the lock, if possible. If the lock is in use, it checks again
@@ -47,7 +48,7 @@ class ResourceLock(object):
         start_time = time.time()
         while True:
             try:
-                logger.debug("{} Try to lock {}".format("Append " + self.__content, self.__file_path))
+                logger.debug("{} Try to lock {}".format("Append " + self.__logged_content, self.__file_path))
                 self.__open_lock_file = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                 break
 
@@ -77,10 +78,10 @@ class ResourceLock(object):
             Should automatically acquire a lock to be used in the with block.
         """
         logger = get_current_logger()
-        logger.debug("{} Enter __enter__".format(self.__content))
+        logger.debug("{} Enter __enter__".format(self.__logged_content))
         if not self.__is_locked:
             self.acquire()
-        logger.debug("{} End __enter__".format(self.__content))
+        logger.debug("{} End __enter__".format(self.__logged_content))
         return self
 
     def __exit__(self, type, value, traceback):
@@ -88,13 +89,13 @@ class ResourceLock(object):
             It automatically releases the lock if it isn't locked.
         """
         logger = get_current_logger()
-        logger.debug("{} Enter __exit__".format(self.__content))
+        logger.debug("{} Enter __exit__".format(self.__logged_content))
         if type is not None:
             print(f"An exception of type {type} occurred with value {value}")
 
         if self.__is_locked:
             self.release()
-        logger.debug("{} End __exit__".format(self.__content))
+        logger.debug("{} End __exit__".format(self.__logged_content))
 
     def __del__(self):
         """

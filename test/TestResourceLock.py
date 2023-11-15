@@ -14,17 +14,16 @@ if __name__ == "__main__":
     def write_lines(line, repeat=10):
         global logger  # Use the shared logger
         logger.info('{} Protecting file: {}'.format('Append ' + line[0], path))
-        resource_lock = ResourceLock(path, content='Try to append ' + line[0])
+        resource_lock = ResourceLock(path, log_make_clear_distinction_lock='Try to append ' + line[0])
         with resource_lock:
             for _ in range(repeat):
                 with open(path, 'a') as tf:
-                    logger.info('Append ' + line[0])
                     tf.write(line + '\n')
                     tf.flush()
 
 
     th1 = threading.Thread(target=write_lines, args=('1111111111111111111111111111111', 10))
-    th2 = threading.Thread(target=write_lines, args=('222222222222222222222222222222', 10))
+    th2 = threading.Thread(target=write_lines, args=('2222222222222222222222222222222', 10))
     th3 = threading.Thread(target=write_lines, args=('3333333333333333333333333333333', 10))
     th4 = threading.Thread(target=write_lines, args=('4444444444444444444444444444444', 10))
 
