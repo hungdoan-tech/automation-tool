@@ -106,8 +106,9 @@ def extract_zip(zip_file_path: str,
         extracted_dir = r'{}{}'.format(extracted_dir, clean_file_name)
         if not os.path.exists(extracted_dir):
             os.mkdir(extracted_dir)
-            if callback_on_extracted_folder is not None:
-                callback_on_extracted_folder(extracted_dir)
+
+    if callback_on_extracted_folder is not None:
+        callback_on_extracted_folder(extracted_dir)
 
     logger.debug(r'Start extracting file {} into {}'.format(zip_file_path, extracted_dir))
 
@@ -152,6 +153,7 @@ def remove_all_in_folder(folder_path: str,
             if os.path.isfile(file_path):
                 if file_extension is None:
                     os.remove(file_path)
+                    continue
 
                 if not file_path.endswith(file_extension):
                     continue
@@ -159,6 +161,7 @@ def remove_all_in_folder(folder_path: str,
                 since_datetime = datetime.now() - elapsed_time
                 if datetime.fromtimestamp(os.path.getctime(file_path)) > since_datetime:
                     os.remove(file_path)
+                    continue
             else:
                 if not only_files:
                     remove_all_in_folder(file_path)
