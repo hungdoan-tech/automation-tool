@@ -69,7 +69,7 @@ class AutomatedTask:
         try:
             self.automate()
         except Exception as exception:
-            logger.info(str(exception))
+            logger.exception(str(exception))
 
     def _setup_driver(self,
                       browser_driver: str) -> WebDriver:

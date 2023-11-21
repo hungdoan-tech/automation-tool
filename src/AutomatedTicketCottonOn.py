@@ -45,9 +45,9 @@ class AutomatedTicketCottonOn(AutomatedTask):
         # click navigating overview bookings page - on the header
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='li[data-cy=bookings]')
 
-        booking_ids: set[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
-                                                                      self._settings['excel.sheet'],
-                                                                      self._settings['excel.read_column.start_cell'])
+        booking_ids: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
+                                                                       self._settings['excel.sheet'],
+                                                                       self._settings['excel.read_column.start_cell'])
         if len(booking_ids) == 0:
             logger.error('Input booking id list is empty ! Please check again')
 

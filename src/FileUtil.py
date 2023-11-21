@@ -41,7 +41,7 @@ def load_key_value_from_file_properties(setting_file: str) -> dict[str, str]:
         return settings
 
 
-def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> set[str]:
+def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> list[str]:
     logger: Logger = get_current_logger()
     column: str = 'A'
     start_row: int = 0
@@ -61,7 +61,7 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
         workbook: Workbook = openpyxl.load_workbook(filename=r'{}'.format(file_path), data_only=True, keep_vba=True)
         worksheet: Worksheet = workbook[sheet_name]
 
-        values: set[str] = set()
+        values: list[str] = []
         runner: int = 0
         max_index = start_row - 1
         for cell in worksheet[column]:
@@ -74,7 +74,7 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
             if cell.value is None:
                 continue
 
-            values.add(str(cell.value))
+            values.append(str(cell.value))
             runner += 1
 
         if len(values) == 0:
