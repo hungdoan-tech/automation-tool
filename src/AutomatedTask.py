@@ -28,32 +28,30 @@ class AutomatedTask:
         mandatory_settings = self.mandatory_settings()
         mandatory_settings.add('invoked_class')
         validate_keys_of_dictionary(settings, mandatory_settings)
-        self._setting = settings
+        self._settings = settings
 
-        self._downloadFolder = self._settings['download.path']
-        if os.path.isfile(self._downloadFolder):
-            logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
-                        f"not folder")
-            raise Exception(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+        self._downloadFolder = self._settings.get('download.path')
+        if self._downloadFolder is not None:
+            if os.path.isfile(self._downloadFolder):
+                logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
                             f"not folder")
+                raise Exception(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+                                f"not folder")
 
-        if not os.path.exists(self._downloadFolder):
-            os.makedirs(self._downloadFolder)
-            logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
+            if not os.path.exists(self._downloadFolder):
+                os.makedirs(self._downloadFolder)
+                logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
 
         if self._settings['time.unit.factor'] is None:
             self._timingFactor = 1.0
         else:
             self._timingFactor = float(self._settings['time.unit.factor'])
 
-        if self._settings['time.unit.factor'] is not None:
-            self._use_gui = 'True'.lower() == str(self._settings['use.GUI']).lower()
+        self._use_gui = False if self._settings['use.GUI'] is None else 'True'.lower() == str(self._settings['use.GUI']).lower()
 
         if not self._use_gui:
             logger.info('Run in headless mode')
-
-        browser_driver: str = get_full_browser_driver_path()
-        self._driver = self._setup_driver(browser_driver)
+        self._driver = None
 
     @abstractmethod
     def mandatory_settings(self) -> set[str]:
@@ -64,6 +62,8 @@ class AutomatedTask:
         pass
 
     def perform(self):
+        browser_driver: str = get_full_browser_driver_path()
+        self._driver = self._setup_driver(browser_driver)
         logger: Logger = create_thread_local_logger(class_name=self._settings['invoked_class'],
                                                     thread_uuid=str(uuid.uuid4()))
         try:
