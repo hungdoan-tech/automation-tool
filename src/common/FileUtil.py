@@ -11,11 +11,15 @@ from logging import Logger
 from openpyxl.cell.cell import Cell
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
-from src.ThreadLocalLogger import get_current_logger
-from src.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
+from src.common.ResourceLock import ResourceLock
 
 
 def load_key_value_from_file_properties(setting_file: str) -> dict[str, str]:
+    """
+
+    :rtype: object
+    """
     logger: Logger = get_current_logger()
     if not os.path.exists(setting_file):
         raise Exception("The settings file {} is not existed. Please providing it !".format(setting_file))

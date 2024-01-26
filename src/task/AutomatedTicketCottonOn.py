@@ -9,12 +9,12 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
-from src.AutomatedTask import AutomatedTask
-from src.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
+from src.task.AutomatedTask import AutomatedTask
+from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
-from src.StringUtil import join_set_of_elements
-from src.ThreadLocalLogger import get_current_logger
-from src.Constants import ZIP_EXTENSION
+from src.common.StringUtil import join_set_of_elements
+from src.common.ThreadLocalLogger import get_current_logger
+from src.common.Constants import ZIP_EXTENSION
 
 
 class AutomatedTicketCottonOn(AutomatedTask):
@@ -22,9 +22,9 @@ class AutomatedTicketCottonOn(AutomatedTask):
     def __init__(self, settings: dict[str, str]):
         super().__init__(settings)
 
-    def mandatory_settings(self) -> set[str]:
-        mandatory_keys: set[str] = {'username', 'password', 'excel.path', 'excel.sheet',
-                                    'excel.read_column.start_cell', 'download.path'}
+    def mandatory_settings(self) -> list[str]:
+        mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet',
+                                    'excel.read_column.start_cell', 'download.path']
         return mandatory_keys
 
     def automate(self) -> None:

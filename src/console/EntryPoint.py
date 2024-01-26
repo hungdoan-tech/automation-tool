@@ -5,11 +5,11 @@ from logging import Logger
 from threading import Thread
 from types import ModuleType
 
-from src.StringUtil import validate_keys_of_dictionary
-from src.Constants import ROOT_DIR
-from src.AutomatedTask import AutomatedTask
-from src.ThreadLocalLogger import get_current_logger
-from src.FileUtil import load_key_value_from_file_properties
+from src.common.StringUtil import validate_keys_of_dictionary
+from src.common.Constants import ROOT_DIR
+from src.task.AutomatedTask import AutomatedTask
+from src.common.ThreadLocalLogger import get_current_logger
+from src.common.FileUtil import load_key_value_from_file_properties
 
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         logger: Logger = get_current_logger()
         logger.info('Invoking class {}'.format(invoked_class))
 
-        clazz_module: ModuleType = importlib.import_module('src.' + invoked_class)
+        clazz_module: ModuleType = importlib.import_module('src.task.' + invoked_class)
         clazz = getattr(clazz_module, invoked_class)
 
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(invoked_class))
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         automated_task: AutomatedTask = clazz(settings)
 
         if run_sequentially:
-            automated_task.perform()
+            automated_task.perform(None)
             continue
 
         # run concurrently

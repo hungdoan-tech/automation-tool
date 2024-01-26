@@ -1,25 +1,34 @@
 import threading
 import tkinter as tk
-from tkinter import Label, Frame, Text
+from threading import Thread
+from tkinter import Label, Frame, Text, HORIZONTAL, ttk
 from tkinter.ttk import Combobox
 import os
 import importlib
 from logging import Logger
 from types import ModuleType
 
-from src.AutomatedTask import AutomatedTask
-from src.Constants import ROOT_DIR
-from src.FileUtil import load_key_value_from_file_properties
-from src.ResourceLock import ResourceLock
-from src.ThreadLocalLogger import get_current_logger
+from src.gui.TextBoxLoggingHandler import setup_textbox_logger
+from src.observer.Event import Event
+from src.observer.EventBroker import EventBroker
+from src.observer.EventHandler import EventHandler
+from src.observer.PercentChangedEvent import PercentChangedEvent
+from src.task.AutomatedTask import AutomatedTask
+from src.common.Constants import ROOT_DIR
+from src.common.FileUtil import load_key_value_from_file_properties
+from src.common.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
 
 
-class GUIApp(tk.Tk):
+class GUIApp(tk.Tk, EventHandler):
 
     def __init__(self):
         super().__init__()
+        self.protocol("WM_DELETE_WINDOW", self.handle_close_app)
+        EventBroker.get_instance().subscribe(topic=PercentChangedEvent.event_name,
+                                             observer=self)
         self.title("Automation Tool")
-        self.geometry('800x600')
+        self.geometry('1920x1080')
 
         self.logger: Logger = get_current_logger()
 
@@ -44,6 +53,23 @@ class GUIApp(tk.Tk):
 
         self.current_input_setting_values = {}
         self.current_automated_task_name = None
+
+        self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
+                                           length=500, mode="determinate",
+                                           maximum=100)
+        self.progressbar.pack(pady=20)
+
+        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=40, height=10)
+        self.textbox.pack()
+        setup_textbox_logger(self.textbox)
+
+    def handle_incoming_event(self, event: Event) -> None:
+        if isinstance(event, PercentChangedEvent):
+            self.progressbar['value'] = event.current_percent
+
+    def handle_close_app(self):
+        self.persist_settings_to_file()
+        self.destroy()
 
     def populate_dropdown(self):
         input_dir: str = os.path.join(ROOT_DIR, "input")
@@ -70,13 +96,13 @@ class GUIApp(tk.Tk):
         # Create new content based on the selected task
         self.logger.info('Display fields for task {}'.format(selected_task))
 
-        clazz_module: ModuleType = importlib.import_module('src.' + selected_task)
+        clazz_module: ModuleType = importlib.import_module('src.task.' + selected_task)
         clazz = getattr(clazz_module, selected_task)
 
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        input_setting_values['use.GUI'] = 'True'
+        input_setting_values['use.GUI'] = 'False'
         input_setting_values['time.unit.factor'] = '1'
 
         self.current_input_setting_values = input_setting_values
@@ -97,33 +123,34 @@ class GUIApp(tk.Tk):
             field_input.pack(side="left")
 
             field_input.special_id = each_setting
-            field_input.insert("1.0", input_setting_values[each_setting])
+            initial_value: str = input_setting_values.get(each_setting)
+            field_input.insert("1.0", '' if initial_value is None else initial_value)
             field_input.bind("<KeyRelease>", self.update_field_data)
 
         perform_button = tk.Button(self.content_frame, text='Perform', font=('Maersk Headline Bold', 10),
                                    command=lambda: self.perform_task(automated_task))
         perform_button.pack()
 
+    def callback_before_run_task(self):
+        setup_textbox_logger(self.textbox)
+
     def perform_task(self, task: AutomatedTask):
-        # threading.Thread(target=task.perform,
-        #                  daemon=False)
-        task.perform()
+        thread: Thread = threading.Thread(target=task.perform, args=[self.callback_before_run_task], daemon=True)
+        thread.start()
 
     def update_field_data(self, event):
-        logger: Logger = get_current_logger()
         text_widget = event.widget
         new_value = text_widget.get("1.0", "end-1c")
         field_name = text_widget.special_id
         self.current_input_setting_values[field_name] = new_value
-        logger.info("Change data on field {} to {}".format(field_name, new_value))
+        self.logger.debug("Change data on field {} to {}".format(field_name, new_value))
 
     def persist_settings_to_file(self):
         if self.current_automated_task_name is None:
             return
 
-        logger: Logger = get_current_logger()
         file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(self.current_automated_task_name))
-        logger.info("Try to persist data to {}".format(file_path))
+        self.logger.info("Attempt to persist data to {}".format(file_path))
 
         with ResourceLock(file_path=file_path):
 

@@ -1,9 +1,9 @@
 import os.path
 from logging import Logger
 
-from src.Constants import ROOT_DIR
-from src.ResourceLock import ResourceLock
-from src.ThreadLocalLogger import get_current_logger
+from src.common.Constants import ROOT_DIR
+from src.common.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
 
 
 def validate_keys_of_dictionary(settings: dict[str, str],

@@ -4,7 +4,7 @@ import logging
 import uuid
 
 from logging import Logger
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import Callable
 from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -13,22 +13,19 @@ from selenium.webdriver.support.expected_conditions import AnyDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-from src.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
-from src.StringUtil import validate_keys_of_dictionary
-from src.ThreadLocalLogger import get_current_logger, create_thread_local_logger
+from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
+from src.common.StringUtil import validate_keys_of_dictionary
+from src.common.ThreadLocalLogger import get_current_logger, create_thread_local_logger
+from src.task.Percentage import Percentage
 
 
-class AutomatedTask:
+class AutomatedTask(Percentage):
     _setting: set[str] = None
 
     def __init__(self, settings: dict[str, str]):
+        super().__init__()
         logger: Logger = get_current_logger()
         self._settings: dict[str, str] = settings
-
-        mandatory_settings = self.mandatory_settings()
-        mandatory_settings.add('invoked_class')
-        validate_keys_of_dictionary(settings, mandatory_settings)
-        self._settings = settings
 
         self._downloadFolder = self._settings.get('download.path')
         if self._downloadFolder is not None:
@@ -54,18 +51,26 @@ class AutomatedTask:
         self._driver = None
 
     @abstractmethod
-    def mandatory_settings(self) -> set[str]:
+    def mandatory_settings(self) -> list[str]:
         pass
 
     @abstractmethod
-    def automate(self):
+    def automate(self) -> None:
         pass
 
-    def perform(self):
+    def perform(self, callback_before_run_task: Callable[[], None]) -> None:
+        mandatory_settings: list[str] = self.mandatory_settings()
+        mandatory_settings.append('invoked_class')
+        validate_keys_of_dictionary(self._settings, set(mandatory_settings))
+
         browser_driver: str = get_full_browser_driver_path()
         self._driver = self._setup_driver(browser_driver)
         logger: Logger = create_thread_local_logger(class_name=self._settings['invoked_class'],
                                                     thread_uuid=str(uuid.uuid4()))
+
+        if callback_before_run_task is not None:
+            callback_before_run_task()
+
         try:
             self.automate()
         except Exception as exception:

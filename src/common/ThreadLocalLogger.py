@@ -6,7 +6,7 @@ import threading
 from logging import Logger, FileHandler, StreamHandler, Formatter
 from logging.handlers import RotatingFileHandler
 from typing import TextIO
-from src.Constants import LOG_FOLDER
+from src.common.Constants import LOG_FOLDER
 
 thread_local_logger = threading.local()
 
@@ -42,7 +42,7 @@ def create_logger(class_name: str, thread_uuid: str, logging_console_level: int 
     file_handler: FileHandler = RotatingFileHandler(filename=os.path.join(LOG_FOLDER, '{}.log'.format(class_name)),
                                                     maxBytes=1024 * 1000 * 10,
                                                     backupCount=3)
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(logging.INFO)
 
     console_handler: StreamHandler[TextIO] = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging_console_level)
@@ -54,6 +54,6 @@ def create_logger(class_name: str, thread_uuid: str, logging_console_level: int 
 
     created_logger.addHandler(file_handler)
     created_logger.addHandler(console_handler)
-    created_logger.setLevel(logging.DEBUG)
+    created_logger.setLevel(logging.INFO)
 
     return created_logger
