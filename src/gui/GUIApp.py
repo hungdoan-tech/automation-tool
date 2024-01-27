@@ -19,6 +19,13 @@ from src.common.FileUtil import load_key_value_from_file_properties
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
 
+from enum import Enum
+
+
+class TaskStatus(Enum):
+    RUNNING = 1
+    WAITING = 2
+
 
 class GUIApp(tk.Tk, EventHandler):
 
@@ -54,18 +61,63 @@ class GUIApp(tk.Tk, EventHandler):
         self.current_input_setting_values = {}
         self.current_automated_task_name = None
 
+        self.custom_progressbar_text_style = ttk.Style()
+        self.custom_progressbar_text_style.layout("Text.Horizontal.TProgressbar",
+                                                  [('Horizontal.Progressbar.trough',
+                                   {'children': [('Horizontal.Progressbar.pbar',
+                                                  {'side': 'left', 'sticky': 'ns'}),
+                                                 ("Horizontal.Progressbar.label",
+                                                  {"sticky": ""})],
+                                    'sticky': 'nswe'})])
+
+        # Set the custom style
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="0 %")
+
         self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
-                                           length=500, mode="determinate",
-                                           maximum=100)
+                                           length=500, mode="determinate", maximum=100
+                                           ,style="Text.Horizontal.TProgressbar")
         self.progressbar.pack(pady=20)
+
+        self.is_task_currently_pause: bool = False
+        self.pause_button = tk.Button(self.container_frame,
+                                      text='Pause',
+                                      command=lambda: self.handle_pause_button())
+        self.pause_button.pack()
+
+        self.terminate_button = tk.Button(self.container_frame,
+                                          text='Terminate',
+                                          command=lambda: self.handle_terminate_button())
+        self.terminate_button.pack()
 
         self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=40, height=10)
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
+    def handle_pause_button(self):
+
+        if self.is_task_currently_pause:
+            self.automated_task.resume()
+            self.pause_button.config(text="Pause")
+            self.is_task_currently_pause = False
+            return
+
+        self.automated_task.pause()
+        self.pause_button.config(text="Resume")
+        self.is_task_currently_pause = True
+        return
+
+    def handle_terminate_button(self):
+        self.automated_task.terminate()
+        self.progressbar['value'] = 0
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
+                                                     text="{} {}%".format("None Task", 0))
+
     def handle_incoming_event(self, event: Event) -> None:
         if isinstance(event, PercentChangedEvent):
             self.progressbar['value'] = event.current_percent
+            self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
+                                                         text="{} {}%".format(type(self.automated_task).__name__,
+                                                                              event.current_percent))
 
     def handle_close_app(self):
         self.persist_settings_to_file()
@@ -108,7 +160,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.current_input_setting_values = input_setting_values
         self.current_automated_task_name = selected_task
 
-        automated_task: AutomatedTask = clazz(input_setting_values)
+        self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
 
         for each_setting in input_setting_values:
             # Create a container frame for each label and text input pair
@@ -127,16 +179,22 @@ class GUIApp(tk.Tk, EventHandler):
             field_input.insert("1.0", '' if initial_value is None else initial_value)
             field_input.bind("<KeyRelease>", self.update_field_data)
 
-        perform_button = tk.Button(self.content_frame, text='Perform', font=('Maersk Headline Bold', 10),
-                                   command=lambda: self.perform_task(automated_task))
+        perform_button = tk.Button(self.content_frame,
+                                   text='Perform',
+                                   font=('Maersk Headline Bold', 10),
+                                   command=lambda: self.perform_task(self.automated_task))
         perform_button.pack()
 
     def callback_before_run_task(self):
         setup_textbox_logger(self.textbox)
 
     def perform_task(self, task: AutomatedTask):
-        thread: Thread = threading.Thread(target=task.perform, args=[self.callback_before_run_task], daemon=True)
-        thread.start()
+        if task.is_alive():
+            return
+
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
+                                                         text="{} {}%".format(type(task).__name__, 0))
+        task.start()
 
     def update_field_data(self, event):
         text_widget = event.widget

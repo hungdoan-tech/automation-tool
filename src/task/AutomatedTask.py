@@ -13,19 +13,30 @@ from selenium.webdriver.support.expected_conditions import AnyDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
+from src.common.ResumableThread import ResumableThread
 from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
 from src.common.StringUtil import validate_keys_of_dictionary
 from src.common.ThreadLocalLogger import get_current_logger, create_thread_local_logger
 from src.task.Percentage import Percentage
 
 
-class AutomatedTask(Percentage):
+class AutomatedTask(Percentage, ResumableThread):
     _setting: set[str] = None
 
-    def __init__(self, settings: dict[str, str]):
+    @abstractmethod
+    def mandatory_settings(self) -> list[str]:
+        pass
+
+    def __init__(self,
+                 settings: dict[str, str],
+                 callback_before_run_task: Callable[[], None]):
+
         super().__init__()
         logger: Logger = get_current_logger()
         self._settings: dict[str, str] = settings
+
+        if callback_before_run_task is not None:
+            self.callback_before_run_task = callback_before_run_task
 
         self._downloadFolder = self._settings.get('download.path')
         if self._downloadFolder is not None:
@@ -50,15 +61,7 @@ class AutomatedTask(Percentage):
             logger.info('Run in headless mode')
         self._driver = None
 
-    @abstractmethod
-    def mandatory_settings(self) -> list[str]:
-        pass
-
-    @abstractmethod
-    def automate(self) -> None:
-        pass
-
-    def perform(self, callback_before_run_task: Callable[[], None]) -> None:
+    def perform(self) -> None:
         mandatory_settings: list[str] = self.mandatory_settings()
         mandatory_settings.append('invoked_class')
         validate_keys_of_dictionary(self._settings, set(mandatory_settings))
@@ -68,8 +71,8 @@ class AutomatedTask(Percentage):
         logger: Logger = create_thread_local_logger(class_name=self._settings['invoked_class'],
                                                     thread_uuid=str(uuid.uuid4()))
 
-        if callback_before_run_task is not None:
-            callback_before_run_task()
+        if self.callback_before_run_task is not None:
+            self.callback_before_run_task()
 
         try:
             self.automate()

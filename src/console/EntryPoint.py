@@ -33,7 +33,7 @@ if __name__ == "__main__":
         settings: dict[str, str] = load_key_value_from_file_properties(setting_file)
         settings['invoked_class'] = invoked_class
 
-        automated_task: AutomatedTask = clazz(settings)
+        automated_task: AutomatedTask = clazz(settings, None)
 
         if run_sequentially:
             automated_task.perform(None)

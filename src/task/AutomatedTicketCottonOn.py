@@ -4,6 +4,8 @@ import threading
 
 from datetime import datetime, timedelta
 from logging import Logger
+from typing import Callable
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
@@ -19,8 +21,8 @@ from src.common.Constants import ZIP_EXTENSION
 
 class AutomatedTicketCottonOn(AutomatedTask):
 
-    def __init__(self, settings: dict[str, str]):
-        super().__init__(settings)
+    def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
+        super().__init__(settings, callback_before_run_task)
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet',
