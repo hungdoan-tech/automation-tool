@@ -1,6 +1,4 @@
-import threading
 import tkinter as tk
-from threading import Thread
 from tkinter import Label, Frame, Text, HORIZONTAL, ttk
 from tkinter.ttk import Combobox
 import os
@@ -18,13 +16,6 @@ from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import load_key_value_from_file_properties
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-
-from enum import Enum
-
-
-class TaskStatus(Enum):
-    RUNNING = 1
-    WAITING = 2
 
 
 class GUIApp(tk.Tk, EventHandler):
@@ -64,18 +55,18 @@ class GUIApp(tk.Tk, EventHandler):
         self.custom_progressbar_text_style = ttk.Style()
         self.custom_progressbar_text_style.layout("Text.Horizontal.TProgressbar",
                                                   [('Horizontal.Progressbar.trough',
-                                   {'children': [('Horizontal.Progressbar.pbar',
-                                                  {'side': 'left', 'sticky': 'ns'}),
-                                                 ("Horizontal.Progressbar.label",
-                                                  {"sticky": ""})],
-                                    'sticky': 'nswe'})])
+                                                    {'children': [('Horizontal.Progressbar.pbar',
+                                                                   {'side': 'left', 'sticky': 'ns'}),
+                                                                  ("Horizontal.Progressbar.label",
+                                                                   {"sticky": ""})],
+                                                     'sticky': 'nswe'})])
 
         # Set the custom style
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="0 %")
 
         self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
                                            length=500, mode="determinate", maximum=100
-                                           ,style="Text.Horizontal.TProgressbar")
+                                           , style="Text.Horizontal.TProgressbar")
         self.progressbar.pack(pady=20)
 
         self.is_task_currently_pause: bool = False
@@ -193,7 +184,7 @@ class GUIApp(tk.Tk, EventHandler):
             return
 
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                         text="{} {}%".format(type(task).__name__, 0))
+                                                     text="{} {}%".format(type(task).__name__, 0))
         task.start()
 
     def update_field_data(self, event):
