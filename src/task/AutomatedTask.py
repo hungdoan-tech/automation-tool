@@ -17,10 +17,10 @@ from src.common.ResumableThread import ResumableThread
 from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
 from src.common.StringUtil import validate_keys_of_dictionary
 from src.common.ThreadLocalLogger import get_current_logger, create_thread_local_logger
-from src.task.Percentage import Percentage
+from src.common.Percentage import Percentage
 
 
-class AutomatedTask(Percentage, ResumableThread):
+class AutomatedTask(Percentage, ResumableThread, ABC):
     _setting: set[str] = None
 
     @abstractmethod

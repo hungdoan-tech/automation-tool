@@ -54,7 +54,24 @@ class AutomatedTicketCottonOn(AutomatedTask):
             logger.error('Input booking id list is empty ! Please check again')
 
         last_booking: str = ''
+        self.current_element_count = 0
+        self.total_element_size = len(booking_ids)
+
         for booking in booking_ids:
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
+            self.current_element_count = self.current_element_count + 1
+
             logger.info("Processing booking : " + booking)
             self.__navigate_and_download(booking)
             last_booking = booking
