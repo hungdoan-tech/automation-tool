@@ -27,6 +27,10 @@ class AutomatedTask(Percentage, ResumableThread):
     def mandatory_settings(self) -> list[str]:
         pass
 
+    @abstractmethod
+    def automate(self):
+        pass
+
     def __init__(self,
                  settings: dict[str, str],
                  callback_before_run_task: Callable[[], None]):

@@ -19,10 +19,13 @@ class ExampleTask(AutomatedTask):
     def automate(self):
         logger: Logger = get_current_logger()
 
-        self.current_element_count = 0
-        self.total_element_size = 10
 
-        while self.current_element_count < self.total_element_size:
+        booking_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        self.current_element_count = 0
+        self.total_element_size = len(booking_ids)
+
+        for booking in booking_ids:
 
             if self.terminated is True:
                 return
@@ -36,5 +39,7 @@ class ExampleTask(AutomatedTask):
                     return
 
             self.current_element_count = self.current_element_count + 1
-            logger.info("Example automated task - running at item {}".format(self.current_element_count))
+
+            # selenium tasks there
+            logger.info("Example automated task - running at booking {}".format(booking))
             time.sleep(2)
