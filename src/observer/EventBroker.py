@@ -24,8 +24,7 @@ class EventBroker:
         observers: set[EventHandler] = self.topicToSetOfObserver.get(topic, set())
         observer: EventHandler
         for observer in observers:
-            observer.handle_incoming_event(event)
-            # thread: Thread = threading.Thread(target=observer.handle_incoming_event,
-            #                                   args=[event],
-            #                                   daemon=False)
-            # thread.start()
+            thread: threading.Thread = threading.Thread(target=observer.handle_incoming_event,
+                                                        args=[event],
+                                                        daemon=False)
+            thread.start()
