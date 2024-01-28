@@ -42,24 +42,25 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         if callback_before_run_task is not None:
             self.callback_before_run_task = callback_before_run_task
 
-        self._downloadFolder = self._settings.get('download.path')
-        if self._downloadFolder is not None:
-            if os.path.isfile(self._downloadFolder):
-                logger.info(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+        self._download_folder = self._settings.get('download.path')
+        if self._download_folder is not None:
+            if os.path.isfile(self._download_folder):
+                logger.info(f"Provided download folder '{self._download_folder}'is not valid. It is a file, "
                             f"not folder")
-                raise Exception(f"Provided download folder '{self._downloadFolder}'is not valid. It is a file, "
+                raise Exception(f"Provided download folder '{self._download_folder}'is not valid. It is a file, "
                                 f"not folder")
 
-            if not os.path.exists(self._downloadFolder):
-                os.makedirs(self._downloadFolder)
-                logger.info(f"Create folder '{self._downloadFolder}' because it is not existed by default")
+            if not os.path.exists(self._download_folder):
+                os.makedirs(self._download_folder)
+                logger.info(f"Create folder '{self._download_folder}' because it is not existed by default")
 
         if self._settings['time.unit.factor'] is None:
             self._timingFactor = 1.0
         else:
             self._timingFactor = float(self._settings['time.unit.factor'])
 
-        self._use_gui = False if self._settings['use.GUI'] is None else 'True'.lower() == str(self._settings['use.GUI']).lower()
+        self._use_gui = False if self._settings['use.GUI'] is None else 'True'.lower() == str(
+            self._settings['use.GUI']).lower()
 
         if not self._use_gui:
             logger.info('Run in headless mode')
@@ -83,6 +84,28 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         except Exception as exception:
             logger.exception(str(exception))
 
+    def perform_mainloop_on_collection(self,
+                                       collection,
+                                       critical_operation_on_each_element: Callable[[object], None]):
+        self.current_element_count = 0
+        self.total_element_size = len(collection)
+
+        for each_element in collection:
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
+            critical_operation_on_each_element(each_element)
+            self.current_element_count = self.current_element_count + 1
+
     def _setup_driver(self,
                       browser_driver: str) -> WebDriver:
 
@@ -100,7 +123,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         options.add_argument('--disable-infobars')
         options.add_argument('--disable-notifications')
 
-        download_path: str = self._downloadFolder
+        download_path: str = self._download_folder
         prefs: dict = {
             "profile.default_content_settings.popups": 0,
             "download.default_directory": r'{}'.format(download_path),

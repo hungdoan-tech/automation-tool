@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Label, Frame, Text, HORIZONTAL, ttk
+from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox
 from tkinter.ttk import Combobox
 import os
 import importlib
@@ -22,6 +22,8 @@ class GUIApp(tk.Tk, EventHandler):
 
     def __init__(self):
         super().__init__()
+        self.automated_task = None
+
         self.protocol("WM_DELETE_WINDOW", self.handle_close_app)
         EventBroker.get_instance().subscribe(topic=PercentChangedEvent.event_name,
                                              observer=self)
@@ -85,6 +87,8 @@ class GUIApp(tk.Tk, EventHandler):
         setup_textbox_logger(self.textbox)
 
     def handle_pause_button(self):
+        if self.automated_task.is_alive() is False:
+            return
 
         if self.is_task_currently_pause:
             self.automated_task.resume()
@@ -181,6 +185,8 @@ class GUIApp(tk.Tk, EventHandler):
 
     def perform_task(self, task: AutomatedTask):
         if task.is_alive():
+            messagebox.showinfo("Have a task currently running",
+                                "Please terminate the current task before run a new one")
             return
 
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",

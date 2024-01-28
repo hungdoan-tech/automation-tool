@@ -16,10 +16,6 @@ from src.common.ResourceLock import ResourceLock
 
 
 def load_key_value_from_file_properties(setting_file: str) -> dict[str, str]:
-    """
-
-    :rtype: object
-    """
     logger: Logger = get_current_logger()
     if not os.path.exists(setting_file):
         raise Exception("The settings file {} is not existed. Please providing it !".format(setting_file))

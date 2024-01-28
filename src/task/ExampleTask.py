@@ -1,6 +1,6 @@
 import time
 from logging import Logger
-from typing import Callable
+from typing import Callable, Set
 
 from src.task.AutomatedTask import AutomatedTask
 from src.common.ThreadLocalLogger import get_current_logger
@@ -17,29 +17,13 @@ class ExampleTask(AutomatedTask):
         return mandatory_keys
 
     def automate(self):
-        logger: Logger = get_current_logger()
-
-
         booking_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-        self.current_element_count = 0
-        self.total_element_size = len(booking_ids)
+        self.perform_mainloop_on_collection(booking_ids, ExampleTask.operation_on_each_element)
 
-        for booking in booking_ids:
-
-            if self.terminated is True:
-                return
-
-            with self.pause_condition:
-
-                while self.paused:
-                    self.pause_condition.wait()
-
-                if self.terminated is True:
-                    return
-
-            self.current_element_count = self.current_element_count + 1
-
-            # selenium tasks there
-            logger.info("Example automated task - running at booking {}".format(booking))
-            time.sleep(2)
+    @staticmethod
+    def operation_on_each_element(booking):
+        logger: Logger = get_current_logger()
+        # selenium tasks there
+        logger.info("Example automated task - running at booking {}".format(booking))
+        time.sleep(2)

@@ -23,6 +23,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
+        self.last_booking = None
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet',
@@ -53,30 +54,12 @@ class AutomatedTicketCottonOn(AutomatedTask):
         if len(booking_ids) == 0:
             logger.error('Input booking id list is empty ! Please check again')
 
-        last_booking: str = ''
+        self.last_booking: str = ''
         self.current_element_count = 0
         self.total_element_size = len(booking_ids)
-
-        for booking in booking_ids:
-
-            if self.terminated is True:
-                return
-
-            with self.pause_condition:
-
-                while self.paused:
-                    self.pause_condition.wait()
-
-                if self.terminated is True:
-                    return
-
-            self.current_element_count = self.current_element_count + 1
-
-            logger.info("Processing booking : " + booking)
-            self.__navigate_and_download(booking)
-            last_booking = booking
-
+        self.perform_mainloop_on_collection(booking_ids, self.operation_on_each_element)
         self._driver.close()
+
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
         logger.info("End processing")
@@ -84,10 +67,16 @@ class AutomatedTicketCottonOn(AutomatedTask):
                     "booking's documents during the program")
 
         # Display summary info to the user
-        self.__check_up_all_downloads(booking_ids, last_booking)
+        self.__check_up_all_downloads(set(booking_ids), self.last_booking)
 
         # Pause and wait for the user to press Enter
         logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
+
+    def operation_on_each_element(self, booking):
+        logger: Logger = get_current_logger()
+        logger.info("Processing booking : " + booking)
+        self.__navigate_and_download(booking)
+        self.last_booking = booking
 
     def __login(self) -> None:
         username: str = self._settings['username']
@@ -99,11 +88,11 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
     def __check_up_all_downloads(self, booking_ids: set[str], last_booking: str) -> None:
         logger: Logger = get_current_logger()
-        last_booking_downloaded_folder: str = os.path.join(self._downloadFolder, last_booking)
+        last_booking_downloaded_folder: str = os.path.join(self._download_folder, last_booking)
         self._wait_download_file_complete(last_booking_downloaded_folder)
 
         is_all_contained, successful_bookings, unsuccessful_bookings = check_parent_folder_contain_all_required_sub_folders(
-            parent_folder=self._downloadFolder, required_sub_folders=booking_ids)
+            parent_folder=self._download_folder, required_sub_folders=booking_ids)
 
         logger.info('{} successful booking folders containing documents has been download'
                     .format(len(successful_bookings)))
@@ -172,10 +161,10 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div[data-cy=shipment-documents-box] '
                                                                    'div:nth-child(2) button')
 
-        full_file_path: str = os.path.join(self._downloadFolder, booking + ZIP_EXTENSION)
+        full_file_path: str = os.path.join(self._download_folder, booking + ZIP_EXTENSION)
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,
-                                            args=(full_file_path, self._downloadFolder,
+                                            args=(full_file_path, self._download_folder,
                                                   self.delete_redundant_opening_pdf_files, None),
                                             daemon=False)
         extract_zip_task.start()
