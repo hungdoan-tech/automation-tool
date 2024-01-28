@@ -18,7 +18,6 @@ class ExampleTask(AutomatedTask):
 
     def automate(self):
         booking_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
         self.perform_mainloop_on_collection(booking_ids, ExampleTask.operation_on_each_element)
 
     @staticmethod

@@ -47,9 +47,9 @@ class GUIApp(tk.Tk, EventHandler):
         self.content_frame = Frame(self.container_frame, width=500, height=300, bd=1, relief=tk.SOLID)
         self.content_frame.pack(padx=20, pady=20)
 
-        self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.on_selection_change)
+        self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_task_dropdown_change)
 
-        self.populate_dropdown()
+        self.populate_task_dropdown()
 
         self.current_input_setting_values = {}
         self.current_automated_task_name = None
@@ -62,9 +62,7 @@ class GUIApp(tk.Tk, EventHandler):
                                                                   ("Horizontal.Progressbar.label",
                                                                    {"sticky": ""})],
                                                      'sticky': 'nswe'})])
-
-        # Set the custom style
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="0 %")
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %")
 
         self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
                                            length=500, mode="determinate", maximum=100
@@ -86,39 +84,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
-    def handle_pause_button(self):
-        if self.automated_task.is_alive() is False:
-            return
-
-        if self.is_task_currently_pause:
-            self.automated_task.resume()
-            self.pause_button.config(text="Pause")
-            self.is_task_currently_pause = False
-            return
-
-        self.automated_task.pause()
-        self.pause_button.config(text="Resume")
-        self.is_task_currently_pause = True
-        return
-
-    def handle_terminate_button(self):
-        self.automated_task.terminate()
-        self.progressbar['value'] = 0
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                     text="{} {}%".format("None Task", 0))
-
-    def handle_incoming_event(self, event: Event) -> None:
-        if isinstance(event, PercentChangedEvent):
-            self.progressbar['value'] = event.current_percent
-            self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                         text="{} {}%".format(type(self.automated_task).__name__,
-                                                                              event.current_percent))
-
-    def handle_close_app(self):
-        self.persist_settings_to_file()
-        self.destroy()
-
-    def populate_dropdown(self):
+    def populate_task_dropdown(self):
         input_dir: str = os.path.join(ROOT_DIR, "input")
         automated_task_names: list[str] = []
 
@@ -130,10 +96,31 @@ class GUIApp(tk.Tk, EventHandler):
         automated_task_names.remove("InvokedClasses")
         self.automated_tasks_dropdown['values'] = automated_task_names
 
-    def on_selection_change(self, event):
-        self.persist_settings_to_file()
-        selected_task = self.automated_tasks_dropdown.get()
-        self.update_frame_content(selected_task)
+    def callback_before_run_task(self):
+        setup_textbox_logger(self.textbox)
+
+    def persist_settings_to_file(self):
+        if self.current_automated_task_name is None:
+            return
+
+        file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(self.current_automated_task_name))
+        self.logger.info("Attempt to persist data to {}".format(file_path))
+
+        with ResourceLock(file_path=file_path):
+
+            with open(file_path, 'w') as file:
+                file.truncate(0)
+
+            with open(file_path, 'a') as file:
+                for key, value in self.current_input_setting_values.items():
+                    file.write(f"{key} = {value}\n")
+
+    def update_field_data(self, event):
+        text_widget = event.widget
+        new_value = text_widget.get("1.0", "end-1c")
+        field_name = text_widget.special_id
+        self.current_input_setting_values[field_name] = new_value
+        self.logger.debug("Change data on field {} to {}".format(field_name, new_value))
 
     def update_frame_content(self, selected_task):
         # Clear the content frame
@@ -154,7 +141,6 @@ class GUIApp(tk.Tk, EventHandler):
 
         self.current_input_setting_values = input_setting_values
         self.current_automated_task_name = selected_task
-
         self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
 
         for each_setting in input_setting_values:
@@ -177,13 +163,26 @@ class GUIApp(tk.Tk, EventHandler):
         perform_button = tk.Button(self.content_frame,
                                    text='Perform',
                                    font=('Maersk Headline Bold', 10),
-                                   command=lambda: self.perform_task(self.automated_task))
+                                   command=lambda: self.handle_click_on_perform_task_button(self.automated_task))
         perform_button.pack()
 
-    def callback_before_run_task(self):
-        setup_textbox_logger(self.textbox)
+    def handle_close_app(self):
+        self.persist_settings_to_file()
+        self.destroy()
 
-    def perform_task(self, task: AutomatedTask):
+    def handle_incoming_event(self, event: Event) -> None:
+        if isinstance(event, PercentChangedEvent):
+            self.progressbar['value'] = event.current_percent
+            self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
+                                                         text="{} {}%".format(type(self.automated_task).__name__,
+                                                                              event.current_percent))
+
+    def handle_task_dropdown_change(self, event):
+        self.persist_settings_to_file()
+        selected_task = self.automated_tasks_dropdown.get()
+        self.update_frame_content(selected_task)
+
+    def handle_click_on_perform_task_button(self, task: AutomatedTask):
         if task.is_alive():
             messagebox.showinfo("Have a task currently running",
                                 "Please terminate the current task before run a new one")
@@ -193,28 +192,26 @@ class GUIApp(tk.Tk, EventHandler):
                                                      text="{} {}%".format(type(task).__name__, 0))
         task.start()
 
-    def update_field_data(self, event):
-        text_widget = event.widget
-        new_value = text_widget.get("1.0", "end-1c")
-        field_name = text_widget.special_id
-        self.current_input_setting_values[field_name] = new_value
-        self.logger.debug("Change data on field {} to {}".format(field_name, new_value))
-
-    def persist_settings_to_file(self):
-        if self.current_automated_task_name is None:
+    def handle_pause_button(self):
+        if self.automated_task.is_alive() is False:
             return
 
-        file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(self.current_automated_task_name))
-        self.logger.info("Attempt to persist data to {}".format(file_path))
+        if self.is_task_currently_pause:
+            self.automated_task.resume()
+            self.pause_button.config(text="Pause")
+            self.is_task_currently_pause = False
+            return
 
-        with ResourceLock(file_path=file_path):
+        self.automated_task.pause()
+        self.pause_button.config(text="Resume")
+        self.is_task_currently_pause = True
+        return
 
-            with open(file_path, 'w') as file:
-                file.truncate(0)
-
-            with open(file_path, 'a') as file:
-                for key, value in self.current_input_setting_values.items():
-                    file.write(f"{key} = {value}\n")
+    def handle_terminate_button(self):
+        self.automated_task.terminate()
+        self.progressbar['value'] = 0
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
+                                                     text="{} {}%".format("None Task", 0))
 
 
 if __name__ == "__main__":
