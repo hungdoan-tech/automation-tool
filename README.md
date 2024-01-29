@@ -1,28 +1,26 @@
-# **Guide to run this automation tool** 
-Please note that this tool is currently only use for Window, still not support for other operating systems
+## **Guide to run this tool** 
 
-Please do not rename the source code folder or move it out of %OneDrive_Mapping_Folder%
+Please note that all scripts in this tool are currently written for the user who primarily using Windows.
 
-Please don't run it while recording screen (recorder + automation tool make will make your machine be so slow)
+### Install the env (python, download source, virtual env):
+.\script\install_env.bat
 
-Note the below %OneDrive_Mapping_Folder% could be **OneDrive - ABCXYZ** in your case
-If you don't have any OneDrive mapping folder - then source would be placed in your folder Documents
+### Console approach: 
+- You must provide mandatory information in the `.\input\InvokedClasses.properties` file and its subsequent properties files which represent the settings for each running task.
 
-### - If you encounter any issues with env, run this batch file _install_env_ to install env again
-set OneDrive_Mapping_Folder=OneDrive - ABCXYZ
-%USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\script\install_env.bat
+vi .\input\InvokedClasses.properties .\input\ExampleTask.properties
 
-### - Navigate the shell (cmd) to the source code folder
-set OneDrive_Mapping_Folder=OneDrive - ABCXYZ
-cd %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool
+- Perform the provided automation task by invoking:
 
-### - Provide mandatory info at .\input\InvokedClasses.properties and its subsequence properties file which stand for the setting of each running task 
-notepad %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\input\InvokedClasses.properties
+.\start_console.bat
 
-### - Perform the provided automation task by invoke _start_app_
-%USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\start_app.bat
+### GUI approach:
+- Perform the GUI app by invoking:
 
-### - After running, all the log will be stored at .\log
-cd %USERPROFILE%\"%OneDrive_Mapping_Folder%"\automation_tool\log
+.\start_gui.bat
 
-You may need it if the running process encounter any issues, it will be helpful to investigate what happened and went wrong
+- You should provide mandatory metadata for the automated task shown in the GUI.
+
+###### After the run, all logs will be stored in `.\log` <br><br> These logs may be helpful for investigating any issues we faced during the running process.
+
+

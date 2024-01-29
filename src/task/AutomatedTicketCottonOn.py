@@ -69,9 +69,6 @@ class AutomatedTicketCottonOn(AutomatedTask):
         # Display summary info to the user
         self.__check_up_all_downloads(set(booking_ids), self.last_booking)
 
-        # Pause and wait for the user to press Enter
-        logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
-
     def operation_on_each_element(self, booking):
         logger: Logger = get_current_logger()
         logger.info("Processing booking : " + booking)
