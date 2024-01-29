@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import uuid
+from datetime import datetime
 
 from logging import Logger
 from abc import abstractmethod, ABC
@@ -38,9 +39,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         super().__init__()
         logger: Logger = get_current_logger()
         self._settings: dict[str, str] = settings
-
-        if callback_before_run_task is not None:
-            self.callback_before_run_task = callback_before_run_task
+        self.callback_before_run_task = callback_before_run_task
 
         self._download_folder = self._settings.get('download.path')
         if self._download_folder is not None:
@@ -83,6 +82,8 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             self.automate()
         except Exception as exception:
             logger.exception(str(exception))
+
+        logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
 
     def perform_mainloop_on_collection(self,
                                        collection,

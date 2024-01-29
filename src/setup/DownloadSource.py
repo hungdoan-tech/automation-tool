@@ -2,15 +2,9 @@ import os
 import requests
 import zipfile
 
-search_term: str = "OneDrive "
-user_home: str = os.path.expanduser("~")
-CLOUD_MAPPING_FOLDER: str = 'Documents'
-for folder in os.listdir(user_home):
-    if os.path.isdir(os.path.join(user_home, folder)) and folder.startswith(search_term):
-        CLOUD_MAPPING_FOLDER = folder
-        break
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_FOLDER_NAME: str = 'automation_tool'
-SOURCE_FOLDER = os.path.join(os.path.expanduser("~"), CLOUD_MAPPING_FOLDER, SOURCE_FOLDER_NAME)
+SOURCE_FOLDER = os.path.join(CURRENT_DIR, SOURCE_FOLDER_NAME)
 
 
 def download_source():
@@ -23,8 +17,8 @@ def download_source():
     response = requests.get(download_url)
 
     if response.status_code == 200:
-        destination_directory = os.path.join(os.path.expanduser("~"), CLOUD_MAPPING_FOLDER)
-        file_name = os.path.join(destination_directory, "automated_task.zip")
+        destination_directory = CURRENT_DIR
+        file_name = os.path.join(destination_directory, "automation-tool.zip")
         with open(file_name, 'wb') as downloaded_zip_file:
             downloaded_zip_file.write(response.content)
         print("Download source successfully")

@@ -36,7 +36,7 @@ if __name__ == "__main__":
         automated_task: AutomatedTask = clazz(settings, None)
 
         if run_sequentially:
-            automated_task.perform(None)
+            automated_task.perform()
             continue
 
         # run concurrently

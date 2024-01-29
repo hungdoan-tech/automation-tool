@@ -7,7 +7,7 @@ set DEFAULT_INSTALL_PATH=%USERPROFILE%\AppData\Local\Programs\Python
     echo Start trying to install Python
     set PYTHON_VERSION=3.10.10
 
-    call python --version 2>NUL
+    call python --version >NUL 2>&1
     if %errorlevel%==0 (
         echo Python is already installed at:
         call where python.exe
