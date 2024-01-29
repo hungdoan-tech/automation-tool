@@ -172,9 +172,16 @@ class GUIApp(tk.Tk, EventHandler):
 
     def handle_incoming_event(self, event: Event) -> None:
         if isinstance(event, PercentChangedEvent):
+            if self.automated_task is None:
+                return
+
+            current_task_name = type(self.automated_task).__name__
+            if event.task_name is not current_task_name:
+                return
+
             self.progressbar['value'] = event.current_percent
             self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                         text="{} {}%".format(type(self.automated_task).__name__,
+                                                         text="{} {}%".format(current_task_name,
                                                                               event.current_percent))
 
     def handle_task_dropdown_change(self, event):
@@ -209,6 +216,7 @@ class GUIApp(tk.Tk, EventHandler):
 
     def handle_terminate_button(self):
         self.automated_task.terminate()
+        self.automated_task = None
         self.progressbar['value'] = 0
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
                                                      text="{} {}%".format("None Task", 0))

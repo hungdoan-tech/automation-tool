@@ -29,10 +29,17 @@ call "%VENV_PATH%\Scripts\activate"
 
 set "ENTRY_POINT=%CD%"
 
-:: Try to find and invoke the entry point to run console app
-echo - Trying to find and invoke the console entry point at %ENTRY_POINT%
+:: Determine which entry point to invoke based on the argument
 set "PYTHONPATH=%ENTRY_POINT%"
-call python -m src.console.EntryPoint
+if "%~1"=="console" (
+    echo - Trying to find and invoke the console entry point at %ENTRY_POINT%
+    call python -m src.console.EntryPoint
+) else if "%~1"=="gui" (
+    echo - Trying to find and invoke the GUI entry point at %ENTRY_POINT%
+    call python -m src.gui.GUIApp
+) else (
+    echo Invalid argument. Usage: %0 [console|gui]
+)
 
 call "%VENV_PATH%\Scripts\deactivate"
 
