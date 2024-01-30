@@ -57,7 +57,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self.last_booking: str = ''
         self.current_element_count = 0
         self.total_element_size = len(booking_ids)
-        self.perform_mainloop_on_collection(booking_ids, self.operation_on_each_element)
+        self._perform_mainloop_on_collection(booking_ids, self.operation_on_each_element)
         self._driver.close()
 
         logger.info(

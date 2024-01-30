@@ -12,7 +12,7 @@ def validate_keys_of_dictionary(settings: dict[str, str],
     error_messages: list[str] = []
     for key in mandatory_settings:
 
-        value = settings[str(key)]
+        value = settings.get(str(key))
         if value is None:
             error_messages.append('{} is missing'.format(key))
 

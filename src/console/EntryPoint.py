@@ -40,10 +40,8 @@ if __name__ == "__main__":
             continue
 
         # run concurrently
-        running_task_thread: Thread = threading.Thread(target=automated_task.perform,
-                                                       daemon=False)
-        running_task_thread.start()
-        running_threads.append(running_task_thread)
+        automated_task.start()
+        running_threads.append(automated_task)
 
     for thread in running_threads:
         thread.join(timeout=60 * 60)

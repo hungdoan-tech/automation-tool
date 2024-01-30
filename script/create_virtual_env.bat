@@ -3,7 +3,7 @@
 setlocal enabledelayedexpansion
 
 :set_main_paths
-set SOURCE_PATH=%CD%\automation_tool
+set SOURCE_PATH=%CD%
 set VENV_PATH=%SOURCE_PATH%\venv
 
 :create_virtual_env

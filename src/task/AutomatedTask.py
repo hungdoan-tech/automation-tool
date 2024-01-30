@@ -85,9 +85,9 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
 
         logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
 
-    def perform_mainloop_on_collection(self,
-                                       collection,
-                                       critical_operation_on_each_element: Callable[[object], None]):
+    def _perform_mainloop_on_collection(self,
+                                        collection,
+                                        critical_operation_on_each_element: Callable[[object], None]):
         self.current_element_count = 0
         self.total_element_size = len(collection)
 
