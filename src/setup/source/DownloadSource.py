@@ -1,6 +1,7 @@
 import os
-import requests
 import zipfile
+
+import requests
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_FOLDER_NAME: str = 'automation_tool'
@@ -12,13 +13,13 @@ def download_source():
         print('Already containing the source code')
         return
 
-    download_url = f"https://github.com/hungdoan-tech/automation-tool/archive/main.zip"
+    download_url = f"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip"
     print("Start download source")
-    response = requests.get(download_url)
+    response = requests.get(url=download_url, verify=False)
 
     if response.status_code == 200:
         destination_directory = CURRENT_DIR
-        file_name = os.path.join(destination_directory, "automation-tool.zip")
+        file_name = os.path.join(destination_directory, "automation-tool-main.zip")
         with open(file_name, 'wb') as downloaded_zip_file:
             downloaded_zip_file.write(response.content)
         print("Download source successfully")

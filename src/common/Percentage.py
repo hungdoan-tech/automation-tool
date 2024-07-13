@@ -1,4 +1,5 @@
 from abc import ABC
+
 from src.observer.EventBroker import EventBroker
 from src.observer.PercentChangedEvent import PercentChangedEvent
 
@@ -21,8 +22,15 @@ class Percentage(ABC):
 
         self.__current_element_count = new_value
         EventBroker.get_instance().publish(topic=PercentChangedEvent.event_name,
-                                           event=PercentChangedEvent(task_name=self.__class__.__name__,
+                                           event=PercentChangedEvent(task_name=type(self).__name__,
                                                                      current_percent=self._get_current_percentage()))
+
+    @property
+    def __class__(self):
+        return super().__class__
 
     def _get_current_percentage(self) -> float:
         return self.__current_element_count * 100 / self.total_element_size
+
+    def get_percentage_distance(self) -> float:
+        return 100 / self.total_element_size

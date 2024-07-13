@@ -1,8 +1,8 @@
 import threading
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 
 
-class ResumableThread(threading.Thread, ABC):
+class ResumableThread(threading.Thread):
     def __init__(self, target=None, group=None, name=None,
                  args=(), kwargs=None, *, daemon=None):
 

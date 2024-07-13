@@ -30,7 +30,6 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
@@ -162,3 +161,7 @@ cython_debug/
 
 log/
 chrome_driver/
+input/*.xlsm
+input/*.xlsx
+input/*.xls
+output/*.exe

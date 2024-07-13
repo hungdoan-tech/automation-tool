@@ -1,203 +1,222 @@
-import tkinter as tk
-from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox
-from tkinter.ttk import Combobox
 import os
-import importlib
+import tkinter as tk
 from logging import Logger
-from types import ModuleType
+from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, Button
+from tkinter.ttk import Combobox, Progressbar, Style
+from typing import Tuple
 
+from src.common.FileUtil import load_key_value_from_file_properties, persist_settings_to_file, \
+    get_all_concrete_task_names
+from src.common.ReflectionUtil import create_task_instance
+from src.common.ThreadLocalLogger import get_current_logger
 from src.gui.TextBoxLoggingHandler import setup_textbox_logger
+from src.gui.UIComponentFactory import UIComponentFactory
+from src.gui.UITaskPerformingStates import UITaskPerformingStates
 from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
-from src.common.Constants import ROOT_DIR
-from src.common.FileUtil import load_key_value_from_file_properties
-from src.common.ResourceLock import ResourceLock
-from src.common.ThreadLocalLogger import get_current_logger
 
 
-class GUIApp(tk.Tk, EventHandler):
+class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
     def __init__(self):
         super().__init__()
-        self.automated_task = None
-
-        self.protocol("WM_DELETE_WINDOW", self.handle_close_app)
+        # Register this gui app instance as an observer listening for PercentChangedEvent <-> effect changes
+        # in progress bar
         EventBroker.get_instance().subscribe(topic=PercentChangedEvent.event_name,
                                              observer=self)
-        self.title("Automation Tool")
-        self.geometry('1920x1080')
-
+        # logger for GUI thread
         self.logger: Logger = get_current_logger()
 
-        self.container_frame = tk.Frame(self)
-        self.container_frame.pack()
-
-        self.myLabel = Label(self.container_frame, text='Automation Tool', font=('Maersk Headline Bold', 16))
-        self.myLabel.pack()
-
-        self.automated_tasks_dropdown = Combobox(
-            master=self.container_frame,
-            state="readonly",
-        )
-        self.automated_tasks_dropdown.pack()
-
-        self.content_frame = Frame(self.container_frame, width=500, height=300, bd=1, relief=tk.SOLID)
-        self.content_frame.pack(padx=20, pady=20)
-
-        self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_task_dropdown_change)
-
-        self.populate_task_dropdown()
-
-        self.current_input_setting_values = {}
-        self.current_automated_task_name = None
-
-        self.custom_progressbar_text_style = ttk.Style()
-        self.custom_progressbar_text_style.layout("Text.Horizontal.TProgressbar",
-                                                  [('Horizontal.Progressbar.trough',
-                                                    {'children': [('Horizontal.Progressbar.pbar',
-                                                                   {'side': 'left', 'sticky': 'ns'}),
-                                                                  ("Horizontal.Progressbar.label",
-                                                                   {"sticky": ""})],
-                                                     'sticky': 'nswe'})])
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %")
-
-        self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
-                                           length=500, mode="determinate", maximum=100
-                                           , style="Text.Horizontal.TProgressbar")
-        self.progressbar.pack(pady=20)
-
+        # UI Task Performing States
+        self.automated_task: AutomatedTask
+        self.current_task_settings: dict[str, str] = {}
+        self.current_task_name = None
         self.is_task_currently_pause: bool = False
-        self.pause_button = tk.Button(self.container_frame,
-                                      text='Pause',
-                                      command=lambda: self.handle_pause_button())
-        self.pause_button.pack()
 
-        self.terminate_button = tk.Button(self.container_frame,
-                                          text='Terminate',
-                                          command=lambda: self.handle_terminate_button())
-        self.terminate_button.pack()
+        # basic configurations for the Tk instance
+        self.title("Automation Tool")
+        self.geometry('1080x980')
+        self.configure(bg="#FFFFFF")
 
-        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=40, height=10)
-        self.textbox.pack()
-        setup_textbox_logger(self.textbox)
+        # register the life cycle callback when before ending/closing the tk instance/window
+        self.protocol("WM_DELETE_WINDOW", self.handle_close_app)
 
-    def populate_task_dropdown(self):
-        input_dir: str = os.path.join(ROOT_DIR, "input")
-        automated_task_names: list[str] = []
+        # initial rendering - layout portions
+        whole_app_frame = tk.Frame(self, bg="#FFFFFF")
+        whole_app_frame.pack()
 
-        with ResourceLock(file_path=input_dir):
-            for dir_name in os.listdir(input_dir):
-                if dir_name.lower().endswith(".properties"):
-                    automated_task_names.append(dir_name.replace(".properties", ""))
+        resource_dir = PathResolvingService.get_instance().resolve('resource')
+        self.logo_image: tk.PhotoImage = tk.PhotoImage(file=os.path.join(resource_dir, "img", "logo.png"))
 
-        automated_task_names.remove("InvokedClasses")
-        self.automated_tasks_dropdown['values'] = automated_task_names
+        self.render_header(parent_frame=whole_app_frame, logo=self.logo_image)
 
-    def callback_before_run_task(self):
-        setup_textbox_logger(self.textbox)
+        tasks_dropdown: Combobox = self.render_tasks_dropdown(parent_frame=whole_app_frame)
 
-    def persist_settings_to_file(self):
-        if self.current_automated_task_name is None:
-            return
+        self.main_content_frame = Frame(master=whole_app_frame, width=1080, height=600, bd=1, relief=tk.SOLID,
+                                        bg='#FFFFFF', borderwidth=0)
+        self.main_content_frame.pack(padx=10, pady=10)
 
-        file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(self.current_automated_task_name))
-        self.logger.info("Attempt to persist data to {}".format(file_path))
+        self.render_main_content_frame_for_first_task(tasks_dropdown=tasks_dropdown)
 
-        with ResourceLock(file_path=file_path):
+        self.progress_bar, self.progress_bar_label = self.render_progress_bar(parent_frame=whole_app_frame)
 
-            with open(file_path, 'w') as file:
-                file.truncate(0)
+        self.logging_textbox = self.render_textbox_logger(parent_frame=whole_app_frame)
 
-            with open(file_path, 'a') as file:
-                for key, value in self.current_input_setting_values.items():
-                    file.write(f"{key} = {value}\n")
+    def get_ui_settings(self) -> dict[str, str]:
+        return self.current_task_settings
 
-    def update_field_data(self, event):
-        text_widget = event.widget
-        new_value = text_widget.get("1.0", "end-1c")
-        field_name = text_widget.special_id
-        self.current_input_setting_values[field_name] = new_value
-        self.logger.debug("Change data on field {} to {}".format(field_name, new_value))
+    def set_ui_settings(self, new_ui_setting_values: dict[str, str]) -> dict[str, str]:
+        self.current_task_settings = new_ui_setting_values
+        return self.current_task_settings
 
-    def update_frame_content(self, selected_task):
+    def get_task_name(self) -> str:
+        return self.current_task_name
+
+    def get_task_instance(self) -> AutomatedTask:
+        return self.automated_task
+
+    # This ui app will act as an observer, listening/handling the event from the publisher
+    def handle_incoming_event(self, event: Event) -> None:
+        logger: Logger = get_current_logger()
+        if isinstance(event, PercentChangedEvent):
+            if self.automated_task is None:
+                logger.error(f'The PercentChangedEvent for ${event.task_name} but no task in action in GUI app')
+                return
+
+            current_task_name = type(self.automated_task).__name__
+            if event.task_name is not current_task_name:
+                logger.warning(f'The PercentChangedEvent for ${event.task_name} is '
+                               f'not match with the current task ${current_task_name}')
+                return
+
+            distance_between_ui_percent_n_event_percent: float = (
+                    event.current_percent - float(self.progress_bar['value']))
+            default_distance_of_task: float = self.automated_task.get_percentage_distance()
+            if distance_between_ui_percent_n_event_percent > default_distance_of_task:
+                return
+
+            self.progress_bar['value'] = round(event.current_percent)
+            self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
+                                              text="{} {}%".format(current_task_name,
+                                                                   event.current_percent))
+
+    # Life cycle callback before closing the ui app
+    def handle_close_app(self) -> None:
+        persist_settings_to_file(self.current_task_name, self.current_task_settings)
+        self.destroy()
+
+    def render_header(self, parent_frame: Frame, logo: tk.PhotoImage) -> Label:
+        logo_label: Label = Label(parent_frame, bg="#FFFFFF", width=980, image=logo, compound=tk.CENTER)
+        logo_label.pack()
+        return logo_label
+
+    def render_tasks_dropdown(self, parent_frame: Frame) -> Combobox:
+        tasks_dropdown: Combobox = Combobox(master=parent_frame, state="readonly", width=110, height=20,
+                                            background='#FB3D52', foreground='#FFFFFF')
+        tasks_dropdown.pack(padx=10, pady=10)
+        tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_tasks_dropdown)
+        tasks_dropdown['values'] = get_all_concrete_task_names()
+        return tasks_dropdown
+
+    def handle_tasks_dropdown(self, event):
+        if self.current_task_name is not None and self.current_task_settings is not None:
+            persist_settings_to_file(self.current_task_name, self.current_task_settings)
+
+        selected_task = event.widget.get()
+        self.render_main_content_frame(selected_task)
+
+    def render_main_content_frame(self, selected_task):
         # Clear the content frame
-        for widget in self.content_frame.winfo_children():
+        for widget in self.main_content_frame.winfo_children():
             widget.destroy()
 
         # Create new content based on the selected task
         self.logger.info('Display fields for task {}'.format(selected_task))
 
-        clazz_module: ModuleType = importlib.import_module('src.task.' + selected_task)
-        clazz = getattr(clazz_module, selected_task)
+        setting_file = os.path.join(PathResolvingService.get_instance().get_input_dir(),
+                                    '{}.properties'.format(selected_task))
+        if not os.path.exists(setting_file):
+            with open(setting_file, 'w'):
+                pass  # File created, do nothing
 
-        setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        input_setting_values['use.GUI'] = 'False'
-        input_setting_values['time.unit.factor'] = '1'
 
-        self.current_input_setting_values = input_setting_values
-        self.current_automated_task_name = selected_task
-        self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
+        if input_setting_values.get('time.unit.factor') is None:
+            input_setting_values['time.unit.factor'] = '1'
 
-        for each_setting in input_setting_values:
-            # Create a container frame for each label and text input pair
-            setting_frame = Frame(self.content_frame)
+        if input_setting_values.get('use.GUI') is None:
+            input_setting_values['use.GUI'] = 'True'
+
+        self.automated_task = create_task_instance(input_setting_values,
+                                                   selected_task,
+                                                   lambda: setup_textbox_logger(self.logging_textbox))
+        mandatory_settings: list[str] = self.automated_task.mandatory_settings()
+        mandatory_settings.append('invoked_class')
+        mandatory_settings.append('time.unit.factor')
+        mandatory_settings.append('use.GUI')
+
+        self.current_task_name = selected_task
+        self.current_task_settings = {}
+        for each_setting in mandatory_settings:
+            # Create a container frame for each pair combining a label and an input
+            setting_frame = Frame(self.main_content_frame, background='#FFFFFF')
             setting_frame.pack(anchor="w", pady=5)
 
-            # Create the label and text input widgets inside the container frame
-            field_label = Label(master=setting_frame, text=each_setting, width=15)
-            field_label.pack(side="left")
-
-            field_input = Text(master=setting_frame, width=30, height=1)
-            field_input.pack(side="left")
-
-            field_input.special_id = each_setting
             initial_value: str = input_setting_values.get(each_setting)
-            field_input.insert("1.0", '' if initial_value is None else initial_value)
-            field_input.bind("<KeyRelease>", self.update_field_data)
+            self.current_task_settings[each_setting] = initial_value
+            UIComponentFactory.get_instance(self).create_component(each_setting, initial_value, setting_frame)
 
-        perform_button = tk.Button(self.content_frame,
+        self.automated_task.settings = self.current_task_settings
+        self.render_button_frame()
+
+    def render_button_frame(self):
+        button_frame = tk.Frame(master=self.main_content_frame, bg='#FFFFFF')
+        button_frame.pack(expand=True, fill="both")
+        # Create a left and right frame with a flexible column configuration
+        left_frame = tk.Frame(master=button_frame, bg='#FFFFFF')
+        left_frame.pack(side="left", expand=True, fill="both")
+        right_frame = tk.Frame(master=button_frame, bg='#FFFFFF')
+        right_frame.pack(side="right", expand=True, fill="both")
+        perform_button = tk.Button(button_frame,
                                    text='Perform',
-                                   font=('Maersk Headline Bold', 10),
-                                   command=lambda: self.handle_click_on_perform_task_button(self.automated_task))
-        perform_button.pack()
+                                   command=lambda: self.handle_perform_button(),
+                                   bg='#2FACE8', fg='#FFFFFF',
+                                   width=9, height=1, activeforeground='#FB3D52')
+        perform_button.pack(side='left')
 
-    def handle_close_app(self):
-        self.persist_settings_to_file()
-        self.destroy()
+        self.pause_button = self.render_pause_button(parent_frame=button_frame)
+        self.render_reset_button(parent_frame=button_frame)
 
-    def handle_incoming_event(self, event: Event) -> None:
-        if isinstance(event, PercentChangedEvent):
-            if self.automated_task is None:
-                return
+    def render_main_content_frame_for_first_task(self, tasks_dropdown: Combobox):
+        tasks_dropdown.focus_set()
+        tasks_dropdown.current(0)
+        tasks_dropdown.event_generate("<<ComboboxSelected>>")
 
-            current_task_name = type(self.automated_task).__name__
-            if event.task_name is not current_task_name:
-                return
-
-            self.progressbar['value'] = event.current_percent
-            self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                         text="{} {}%".format(current_task_name,
-                                                                              event.current_percent))
-
-    def handle_task_dropdown_change(self, event):
-        self.persist_settings_to_file()
-        selected_task = self.automated_tasks_dropdown.get()
-        self.update_frame_content(selected_task)
-
-    def handle_click_on_perform_task_button(self, task: AutomatedTask):
-        if task.is_alive():
+    def handle_perform_button(self):
+        if self.automated_task is not None and self.automated_task.is_alive():
             messagebox.showinfo("Have a task currently running",
                                 "Please terminate the current task before run a new one")
             return
 
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                     text="{} {}%".format(type(task).__name__, 0))
-        task.start()
+        if self.automated_task is None:
+            self.automated_task = create_task_instance(self.current_task_settings,
+                                                       self.current_task_name,
+                                                       lambda: setup_textbox_logger(self.logging_textbox))
+
+        self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
+                                          text="{} {}%".format(type(self.automated_task).__name__, 0))
+        self.automated_task.start()
+
+    def render_pause_button(self, parent_frame: Frame) -> tk.Button:
+        pause_button: Button = tk.Button(master=parent_frame, text='Pause', command=self.handle_pause_button,
+                                         bg='#FA6A55', fg='#FFFFFF', width=9, height=1, activeforeground='#FA6A55')
+        pause_button.pack(side='left')
+        return pause_button
 
     def handle_pause_button(self):
         if self.automated_task.is_alive() is False:
@@ -214,12 +233,52 @@ class GUIApp(tk.Tk, EventHandler):
         self.is_task_currently_pause = True
         return
 
-    def handle_terminate_button(self):
-        self.automated_task.terminate()
+    def render_reset_button(self, parent_frame: Frame) -> Button:
+        reset_button: Button = tk.Button(parent_frame, text='Reset', command=self.handle_reset_button,
+                                         bg='#00243D', fg='#FFFFFF', font=('Maersk Headline', 11), width=9, height=1,
+                                         activeforeground='#00243D')
+        reset_button.pack(side='left')
+        return reset_button
+
+    def handle_reset_button(self):
+        if self.automated_task:
+            self.automated_task.terminate()
+
+        if self.is_task_currently_pause:
+            self.pause_button.config(text="Pause")
+            self.is_task_currently_pause = False
+
         self.automated_task = None
-        self.progressbar['value'] = 0
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
-                                                     text="{} {}%".format("None Task", 0))
+        if self.automated_task is None:
+            self.automated_task = create_task_instance(self.current_task_settings,
+                                                       self.current_task_name,
+                                                       lambda: setup_textbox_logger(self.logging_textbox))
+        self.progress_bar['value'] = 0
+        self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
+                                          text="{} {}%".format("None Task", 0))
+
+    def render_progress_bar(self, parent_frame: Frame) -> Tuple[Progressbar, Style]:
+        progressbar_text = ttk.Style()
+        progressbar_text.layout("Text.Horizontal.TProgressbar",
+                                [('Horizontal.Progressbar.trough', {
+                                    'children': [('Horizontal.Progressbar.pbar', {'side': 'left', 'sticky': 'ns'}),
+                                                 ("Horizontal.Progressbar.label", {"sticky": ""})],
+                                    'sticky': 'nswe'})])
+        progressbar_text.configure(style="Text.Horizontal.TProgressbar", text="None 0 %", background='#FB3D52',
+                                   troughcolor='#40AB35', troughrelief='flat', bordercolor='#FB3D52',
+                                   lightcolor='#42B0D5', darkcolor='#00243D')
+
+        progressbar: Progressbar = ttk.Progressbar(parent_frame, orient=HORIZONTAL, length=800, mode="determinate",
+                                                   maximum=100, style="Text.Horizontal.TProgressbar")
+        progressbar.pack(pady=10)
+        return progressbar, progressbar_text
+
+    def render_textbox_logger(self, parent_frame: Frame):
+        textbox: Text = tk.Text(master=parent_frame, wrap="word", state=tk.DISABLED, width=100, height=15,
+                                background='#878787', foreground='#FFFFFF')
+        textbox.pack()
+        setup_textbox_logger(textbox)
+        return textbox
 
 
 if __name__ == "__main__":
