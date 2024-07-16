@@ -282,5 +282,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
 
 if __name__ == "__main__":
+    # from src.setup.packaging.admin.AdminPrivilegeProvider import AdminPrivilegeProvider
+    # AdminPrivilegeProvider.validate_and_provide()
     app = GUIApp()
     app.mainloop()

@@ -19,7 +19,7 @@ IF EXIST dist (
     xcopy input dist\input /E /H /C /I
     xcopy output dist\output /E /H /C /I
     xcopy script dist\script /E /H /C /I
-    xcopy release_notes dist\release_notes /E /H /C /I
+    xcopy release_note dist\release_note /E /H /C /I
 )
 
 echo Checking Inno Setup path...

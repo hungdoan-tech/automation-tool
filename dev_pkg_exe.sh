@@ -5,18 +5,22 @@ if [ -d dist ]; then
 fi
 
 if [ ! -d venv ]; then
-  python -m venv venv
+  python3.10 -m venv venv
   echo "Virtual environment created: venv"
 fi
 
 source venv/bin/activate
 
+pip install --upgrade pip
+
 pip install -r requirements.txt
+
+#sudo apt-get install policykit-1
 
 pyinstaller automation_tool.spec
 
 if [ -d dist ]; then
-  cp -r input output script release_notes dist/
+  cp -r input output script release_note dist/
 fi
 
 deactivate

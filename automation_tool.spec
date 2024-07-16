@@ -2,7 +2,7 @@
 import platform
 platform_name = platform.system()
 
-our_datas = [('resource', 'resource'), ('src', 'src')]
+our_datas = [('src', 'src'), ('resource', 'resource')]
 our_hidden_imports = [  'selenium.webdriver.chrome',
                         'selenium.webdriver.support.expected_conditions',
                         'selenium.webdriver.support.wait',

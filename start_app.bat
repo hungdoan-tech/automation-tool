@@ -6,16 +6,31 @@ set "SOURCE_PATH=%CD%"
 set "SCRIPT_PATH=%SOURCE_PATH%\script"
 set "VENV_PATH=%SOURCE_PATH%\venv"
 
-:: Check if Python is installed
-echo - Checking if Python is installed
-call python --version >NUL 2>&1
+:: Check if Python is installed and is version 3.10
+echo - Checking if Python 3.10 is installed
+for /f "tokens=2 delims= " %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
 
-if %errorlevel%==0 (
-    echo - Python is already installed
-) else (
+if not defined PYTHON_VERSION (
     echo - Python is not installed, attempting to install
     call "%SCRIPT_PATH%\install_python.bat"
 )
+
+for /f "tokens=1,2 delims=." %%i in ("%PYTHON_VERSION%") do (
+    set MAJOR_VERSION=%%i
+    set MINOR_VERSION=%%j
+)
+
+if "%MAJOR_VERSION%" NEQ "3" (
+    echo - Python is installed, but not 3.10 version, attempting to install
+    call "%SCRIPT_PATH%\install_python.bat"
+)
+
+if "%MINOR_VERSION%" NEQ "10" (
+    echo - Python is installed, but not 3.10 version, attempting to install
+    call "%SCRIPT_PATH%\install_python.bat"
+)
+
+echo - Python 3.10 is already installed
 
 :: Check if virtual environment exists
 echo - Checking if virtual environment exists

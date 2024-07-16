@@ -239,7 +239,6 @@ def get_files_names_in_dir(dir_path: str, file_extension: str, excluded_file_nam
     file_names: set[str] = set()
     for root, _, files in os.walk(dir_path):
         for file in files:
-            logger.warning(file)
             if file.lower().endswith(file_extension):
                 clean_name = file.replace(".py", "")
                 file_names.add(clean_name)

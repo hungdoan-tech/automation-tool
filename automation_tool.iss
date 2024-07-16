@@ -16,15 +16,16 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+UsePreviousAppDir=no
+DefaultDirName={sd}\{#MyAppName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
-DefaultGroupName={#MyAppName}
+DisableProgramGroupPage=yes
 AllowNoIcons=yes
 InfoBeforeFile=README.md
-PrivilegesRequired=admin
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=commandline
 OutputBaseFilename=automation_tool_installer
 OutputDir=dist\
 Compression=lzma
@@ -42,7 +43,7 @@ Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion;
 Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion;
 Source: "dist\output\*"; DestDir: "{app}\output"; Flags: ignoreversion;
 Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion;
-Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion;
+Source: "dist\release_note\*"; DestDir: "{app}\release_note"; Flags: ignoreversion;
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
