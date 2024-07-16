@@ -13,7 +13,7 @@ def download_source():
         print('Already containing the source code')
         return
 
-    download_url = f"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip"
+    download_url = f"https://github.com/hungdoan-tech/Automation-Tool/archive/main.zip"
     print("Start download source")
     response = requests.get(url=download_url, verify=False)
 

@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 
 from src.common.RestrictCallers import only_accept_callers_from
 from src.setup.packaging.path.PathResolver import PathResolver
@@ -9,6 +10,8 @@ from src.setup.packaging.path.PathResolvingService import PathResolvingService
 class RuntimeMutableFilePathResolver(PathResolver):
     __instance = None
 
+    __class_lock = threading.Lock()
+
     @staticmethod
     @only_accept_callers_from(PathResolvingService)
     def get_instance() -> PathResolver:
@@ -16,8 +19,23 @@ class RuntimeMutableFilePathResolver(PathResolver):
             RuntimeMutableFilePathResolver.__instance = RuntimeMutableFilePathResolver()
         return RuntimeMutableFilePathResolver.__instance
 
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+
+            with cls.__class_lock:
+
+                if cls.__instance is None:
+
+                    cls.__instance = super(RuntimeMutableFilePathResolver, cls).__new__(cls)
+
+        return cls.__instance
+
     def __init__(self):
-        self.root_dir = self.get_executable_directory()
+        if not hasattr(self, '_initialized'):
+            with self.__class_lock:
+                if not hasattr(self, '_initialized'):
+                    self.root_dir = self.get_executable_directory()
+                    self._initialized = True
 
     def get_executable_directory(self) -> str:
         if getattr(sys, 'frozen', False):

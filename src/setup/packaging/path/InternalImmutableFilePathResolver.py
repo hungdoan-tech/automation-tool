@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 
 from src.common.RestrictCallers import only_accept_callers_from
 from src.setup.packaging.path.PathResolver import PathResolver
@@ -7,7 +8,10 @@ from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 
 class InternalImmutableFilePathResolver(PathResolver):
+
     __instance = None
+
+    __class_lock = threading.Lock()
 
     @staticmethod
     @only_accept_callers_from(PathResolvingService)
@@ -16,9 +20,23 @@ class InternalImmutableFilePathResolver(PathResolver):
             InternalImmutableFilePathResolver.__instance = InternalImmutableFilePathResolver()
         return InternalImmutableFilePathResolver.__instance
 
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+
+            with cls.__class_lock:
+
+                if cls.__instance is None:
+
+                    cls.__instance = super(InternalImmutableFilePathResolver, cls).__new__(cls)
+
+        return cls.__instance
+
     def __init__(self):
-        # regarding the user files like log, input
-        self.root_dir = self.get_executable_directory()
+        if not hasattr(self, '_initialized'):
+            with self.__class_lock:
+                if not hasattr(self, '_initialized'):
+                    self.root_dir = self.get_executable_directory()
+                    self._initialized = True
 
     def get_executable_directory(self) -> str:
         try:

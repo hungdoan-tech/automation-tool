@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 from logging import Logger
 from tkinter import filedialog, Text
@@ -8,24 +9,46 @@ from src.gui.UITaskPerformingStates import UITaskPerformingStates
 
 
 class UIComponentFactory:
-    _instance = None
 
-    def __init__(self, app: UITaskPerformingStates):
-        self.app = app
+    __instance = None
+
+    __class_lock = threading.Lock()
 
     @staticmethod
     def get_instance(app: UITaskPerformingStates):
         if app is None:
             raise Exception('Must provide the GUI app instance')
 
-        if UIComponentFactory._instance is None:
-            UIComponentFactory._instance = UIComponentFactory(app)
-            return UIComponentFactory._instance
+        if UIComponentFactory.__instance is None:
+            UIComponentFactory.__instance = UIComponentFactory(app)
 
-        if UIComponentFactory._instance.app is not app:
-            UIComponentFactory._instance = UIComponentFactory(app)
+        if UIComponentFactory.__instance.__app is not app:
+            # changing the state when changing task type
+            UIComponentFactory.__instance.set_ui_task_performing_states(app)
 
-        return UIComponentFactory._instance
+        return UIComponentFactory.__instance
+
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+
+            with cls.__class_lock:
+
+                if cls.__instance is None:
+                    cls.__instance = super(UIComponentFactory, cls).__new__(cls)
+
+        return cls.__instance
+
+    def __init__(self, app: UITaskPerformingStates):
+        if not hasattr(self, '_initialized'):
+            with self.__class_lock:
+                if not hasattr(self, '_initialized'):
+                    self.__app = app
+                    self.__instance_lock = threading.Lock()
+                    self._initialized = True
+
+    def set_ui_task_performing_states(self, app: UITaskPerformingStates):
+        with self.__instance_lock:
+            self.__app = app
 
     def create_component(self, setting_key: str, setting_value: str, parent_frame: tk.Frame) -> tk.Widget:
         setting_key_in_lowercase: str = setting_key.lower()
@@ -57,7 +80,8 @@ class UIComponentFactory:
             logger: Logger = get_current_logger()
             logger.debug("Change data on field {} to {}".format(field_name, new_value))
 
-        field_label = tk.Label(master=parent_frame, text=setting_key, width=25, fg='#FFFFFF', bg='#00243D', borderwidth=0)
+        field_label = tk.Label(master=parent_frame, text=setting_key, width=25, fg='#FFFFFF', bg='#00243D',
+                               borderwidth=0)
         field_label.pack(side="left")
 
         field_input = tk.Text(master=parent_frame, width=80, height=1, font=('Maersk Text', 9),
@@ -65,7 +89,7 @@ class UIComponentFactory:
         field_input.pack(side="left")
         field_input.special_id = setting_key
         field_input.insert("1.0", '' if setting_value is None else setting_value)
-        field_input.bind("<KeyRelease>", lambda event, app=self.app: update_field_data(event, app))
+        field_input.bind("<KeyRelease>", lambda event, app=self.__app: update_field_data(event, app))
 
         return field_input
 
@@ -80,7 +104,8 @@ class UIComponentFactory:
                 main_textbox.event_generate("<KeyRelease>")
 
         text_box: Text = self.create_textbox_input(setting_key, setting_value, parent_frame)
-        btn_choose = tk.Button(master=parent_frame, text="Choose Folder", command=lambda: choosing_dir_callback(text_box),
+        btn_choose = tk.Button(master=parent_frame, text="Choose Folder",
+                               command=lambda: choosing_dir_callback(text_box),
                                height=1, borderwidth=0, bg='#2FACE8', fg='#FFFFFF')
         btn_choose.pack(side="right")
 
@@ -120,7 +145,7 @@ class UIComponentFactory:
                                           width=21, height=1,
                                           variable=is_checked,
                                           command=lambda: updating_checkbox_callback(setting_key, is_checked,
-                                                                                     self.app))
+                                                                                     self.__app))
         use_gui_checkbox.pack(anchor="w", pady=5)
 
         return use_gui_checkbox
