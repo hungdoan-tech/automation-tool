@@ -152,8 +152,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         if input_setting_values.get('use.GUI') is None:
             input_setting_values['use.GUI'] = 'True'
 
-        self.automated_task = create_task_instance(input_setting_values,
-                                                   selected_task,
+        self.automated_task = create_task_instance(selected_task,
+                                                   input_setting_values,
                                                    lambda: setup_textbox_logger(self.logging_textbox))
         mandatory_settings: list[str] = self.automated_task.mandatory_settings()
         mandatory_settings.append('invoked_class')
@@ -204,8 +204,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
             return
 
         if self.automated_task is None:
-            self.automated_task = create_task_instance(self.current_task_settings,
-                                                       self.current_task_name,
+            self.automated_task = create_task_instance(self.current_task_name,
+                                                       self.current_task_settings,
                                                        lambda: setup_textbox_logger(self.logging_textbox))
 
         self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
@@ -250,8 +250,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
         self.automated_task = None
         if self.automated_task is None:
-            self.automated_task = create_task_instance(self.current_task_settings,
-                                                       self.current_task_name,
+            self.automated_task = create_task_instance(self.current_task_name,
+                                                       self.current_task_settings,
                                                        lambda: setup_textbox_logger(self.logging_textbox))
         self.progress_bar['value'] = 0
         self.progress_bar_label.configure("Text.Horizontal.TProgressbar",

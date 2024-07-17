@@ -33,7 +33,7 @@ if __name__ == "__main__":
         
         settings: dict[str, str] = load_key_value_from_file_properties(setting_file)
         settings['invoked_class'] = invoked_class
-        automated_task: AutomatedTask = create_task_instance(settings, invoked_class, None)
+        automated_task: AutomatedTask = create_task_instance(invoked_class, settings, None)
 
         if run_sequentially:
             automated_task.perform()
@@ -46,4 +46,4 @@ if __name__ == "__main__":
         running_threads.append(running_task_thread)
 
     for thread in running_threads:
-        thread.join(timeout=60 * 60)
+        thread.join()
