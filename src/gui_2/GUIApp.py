@@ -1,7 +1,6 @@
 import os
 import tkinter as tk
 
-from src.gui_2.GUIEventHandler import GUIEventHandler
 from src.gui_2.LoggingHandler import LoggingHandler
 from src.gui_2.TaskManager import TaskManager
 from src.gui_2.layout.Body import Body
@@ -20,13 +19,12 @@ class GUIApp:
         self.logging_textbox = None
         self.logger_setup_callback = lambda: LoggingHandler(self.logging_textbox).setup_logger()
 
-        self.layout = Layout(master=window, bg='white')
-        self.init_layout()
+        self.layout = self.init_layout()
 
         # self.progress_bar_manager = ProgressBarManager(self.layout.progress_bar, self.layout.progress_bar_label)
-        self.event_handler = GUIEventHandler(self.progress_bar_manager)
+        # self.event_handler = GUIEventHandler(self.progress_bar_manager)
 
-    def init_layout(self):
+    def init_layout(self) -> Layout:
         window = tk.Tk()
         window.title("Automation Tool")
         window.geometry('1920x1080')
@@ -50,10 +48,18 @@ class GUIApp:
         window.grid_rowconfigure(0, weight=1)
         window.grid_columnconfigure(0, weight=1)
 
-        window.mainloop()
-
     def start(self):
-        self.root.mainloop()
+        # self.main_content_frame = Frame(master=master_frame, width=1080, height=600, bd=1, relief=tk.SOLID,
+        #                                 bg='#FFFFFF', borderwidth=0)
+        # self.main_content_frame.pack(padx=10, pady=10)
+        #
+        # self.render_main_content_frame_for_first_task(tasks_dropdown=tasks_dropdown)
+        #
+        # self.progress_bar, self.progress_bar_label = self.render_progress_bar(parent_frame=whole_app_frame)
+        #
+        # self.logging_textbox = self.render_textbox_logger(parent_frame=whole_app_frame)
+
+        self.window.mainloop()
 
 
 if __name__ == "__main__":

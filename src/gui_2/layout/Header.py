@@ -15,4 +15,3 @@ class Header(RenderableComponent):
         self.branding_image_object: tk.PhotoImage = tk.PhotoImage(master=self, file=self.branding_image)
         logo_label: tk.Label = tk.Label(master=self, image=self.branding_image_object, compound=tk.CENTER)
         logo_label.grid_configure(row=0, column=0)
-        print("Header")

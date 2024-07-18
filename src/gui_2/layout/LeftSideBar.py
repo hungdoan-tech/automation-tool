@@ -7,4 +7,4 @@ class LeftSideBar(RenderableComponent):
         super().__init__(master=master, *args, **kwargs)
 
     def render(self):
-        print("LeftSideBar")
+        pass
