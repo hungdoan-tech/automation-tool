@@ -22,18 +22,17 @@ class Test(RenderableComponent):
     def render(self):
         pass
 
-    # Subscribe to state changes
     def handle_state_change(self, action: Action, state: States) -> None:
         print(f"Action dispatched: {action['type']}")
         print('New state:', state.get('task_name'))
 
     def doSomething(self):
-        unsubscribe = store.subscribe(self, self.handle_state_change)
+        unsubscribe = store.subscribe(self.handle_state_change)
 
         # Dispatch actions
         store.dispatch(set_task_name('John Doe'))
 
-        unsubscribe(self)
+        unsubscribe()
 
 
 if __name__ == '__main__':
