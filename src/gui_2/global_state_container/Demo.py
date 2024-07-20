@@ -3,6 +3,9 @@ import tkinter as tk
 from src.gui_2.global_state_container.DefinedType import Action, States
 from src.gui_2.global_state_container.Store import Store
 from src.gui_2.global_state_container.action.TaskNameAction import set_task_name
+from src.gui_2.global_state_container.middleware.ErrorHandlingMiddleware import error_handling_middleware
+from src.gui_2.global_state_container.middleware.LoggingMiddeware import logging_middleware
+from src.gui_2.global_state_container.middleware.PromiseMiddleware import promise_middleware
 from src.gui_2.global_state_container.reducer.CombinedReducer import combine_reducers
 from src.gui_2.global_state_container.reducer.TaskReducer import task_name_reducer
 from src.gui_2.layout.RenderableComponent import RenderableComponent
@@ -14,7 +17,7 @@ root_reducer = combine_reducers([task_name_reducer])
 initial_state = {}
 
 # Create the store
-store = Store(initial_state, root_reducer)
+store = Store(initial_state, root_reducer, [error_handling_middleware, logging_middleware, promise_middleware])
 
 
 class Test(RenderableComponent):
