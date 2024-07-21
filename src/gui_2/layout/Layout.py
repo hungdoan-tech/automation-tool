@@ -1,12 +1,12 @@
-from src.gui_2.layout.Body import Body
-from src.gui_2.layout.Footer import Footer
-from src.gui_2.layout.Header import Header
-from src.gui_2.layout.LeftSideBar import LeftSideBar
-from src.gui_2.layout.RenderableComponent import RenderableComponent
-from src.gui_2.layout.RightSideBar import RightSideBar
+from src.gui_2.layout.Component import Component
+from src.gui_2.layout.body import Body
+from src.gui_2.layout.footer import Footer
+from src.gui_2.layout.header import Header
+from src.gui_2.layout.left_side_bar import LeftSideBar
+from src.gui_2.layout.right_side_bar.RightSideBar import RightSideBar
 
 
-class Layout(RenderableComponent):
+class Layout(Component):
 
     def __init__(self, master, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
@@ -33,22 +33,79 @@ class Layout(RenderableComponent):
             self.grid_columnconfigure(index=runner, weight=1)
             runner += 1
 
-        # Define the grid layout for each section
-        self.header.grid_configure(row=0, column=0, rowspan=1, columnspan=10, sticky='nswe')
+        total_height: int = 10
+        main_content_height: int = 8
+        header_footer_heights: tuple[int, int] = self.decide_a_pair_components_size(total_height - main_content_height,
+                                                                                    self.header, self.footer)
+        header_height: int = header_footer_heights[0]
+        footer_height: int = header_footer_heights[1]
+        if footer_height == 0:
+            header_height = 1
 
-        self.left_side_bar.grid_configure(row=1, column=0, rowspan=8, columnspan=2, sticky='nswe')
+        total_width: int = 10
+        main_content_width: int = 8
+        side_bar_widths: tuple[int, int] = self.decide_a_pair_components_size(total_width - main_content_width,
+                                                                              self.left_side_bar, self.right_side_bar)
+        left_side_bar_width: int = side_bar_widths[0]
+        right_side_bar_width: int = side_bar_widths[1]
 
-        self.body.grid_configure(row=1, column=2, rowspan=8, columnspan=6, sticky='nswe')
+        body_start_row = header_height
+        body_row_span = total_height - header_height - footer_height
+        body_start_column = left_side_bar_width
+        body_column_span = total_width - left_side_bar_width - right_side_bar_width
 
-        self.right_side_bar.grid_configure(row=1, column=8, rowspan=8, columnspan=2, sticky='nswe')
+        if header_height > 0:
+            self.header.grid_configure(row=0, column=0, rowspan=header_height, columnspan=total_width, sticky='nswe')
+        else:
+            self.header.grid_forget()
 
-        self.footer.grid_configure(row=9, column=0, rowspan=1, columnspan=10, sticky='nswe')
+        if left_side_bar_width > 0:
+            self.left_side_bar.grid_configure(row=1, column=0, rowspan=body_row_span, columnspan=left_side_bar_width,
+                                              sticky='nswe')
+        else:
+            self.left_side_bar.grid_forget()
 
-        # Render content in each section
-        self.header.render()
-        self.left_side_bar.render()
-        self.body.render()
-        self.right_side_bar.render()
-        self.footer.render()
+        self.body.grid_configure(row=body_start_row, column=body_start_column, rowspan=body_row_span,
+                                 columnspan=body_column_span, sticky='nswe')
+
+        if right_side_bar_width > 0:
+            self.right_side_bar.grid_configure(row=1, column=body_column_span + left_side_bar_width,
+                                               rowspan=body_row_span, columnspan=right_side_bar_width,
+                                               sticky='nswe')
+        else:
+            self.right_side_bar.grid_forget()
+
+        if footer_height > 0:
+            self.footer.grid_configure(row=body_row_span + header_height, column=0,
+                                       rowspan=footer_height, columnspan=total_width, sticky='nswe')
+        else:
+            self.footer.grid_forget()
 
         print("Complete rendering")
+
+    def decide_a_pair_components_size(self, total_side_bar_width: int, first_component: Component,
+                                      second_component: Component) -> tuple[int, int]:
+        left_side_bar_width = 0
+        right_side_bar_width = 0
+
+        is_left_side_bar_empty = self.is_render_pass(first_component)
+        is_right_side_bar_empty = self.is_render_pass(second_component)
+
+        if is_left_side_bar_empty and is_right_side_bar_empty:
+            return (left_side_bar_width, right_side_bar_width)
+
+        if is_left_side_bar_empty:
+            right_side_bar_width = total_side_bar_width
+            return (left_side_bar_width, right_side_bar_width)
+
+        if is_right_side_bar_empty:
+            left_side_bar_width = total_side_bar_width
+            return (left_side_bar_width, right_side_bar_width)
+
+        left_side_bar_width = int(total_side_bar_width / 2)
+        right_side_bar_width = int(total_side_bar_width / 2)
+        return (left_side_bar_width, right_side_bar_width)
+
+    def is_render_pass(self, instance: Component) -> bool:
+        _RETURN_NONE = (lambda: None).__code__.co_code
+        return instance.render.__code__.co_code == _RETURN_NONE

@@ -1,5 +1,6 @@
 import time
-from src.common.ResumableThread import ResumableThread
+
+from src.common.threading.ResumableThread import ResumableThread
 
 
 class Test(ResumableThread):

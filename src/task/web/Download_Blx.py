@@ -7,10 +7,10 @@ from typing import Callable
 
 from selenium.webdriver.common.by import By
 
-from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
-from src.common.StringUtil import join_set_of_elements
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.util.StringUtil import join_set_of_elements
 from src.task.WebTask import WebTask
 
 

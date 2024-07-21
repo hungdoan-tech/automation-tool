@@ -7,8 +7,8 @@ import pygetwindow as gw
 from pygetwindow import Win32Window
 from pywinauto import Application, WindowSpecification, ElementNotFoundError
 
-from src.common.Stack import Stack
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.data_structure.Stack import Stack
+from src.common.logging.ThreadLocalLogger import get_current_logger
 from src.task.AutomatedTask import AutomatedTask
 
 

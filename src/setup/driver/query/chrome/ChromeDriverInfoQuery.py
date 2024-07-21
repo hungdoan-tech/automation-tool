@@ -3,7 +3,7 @@ from logging import Logger
 
 import requests
 
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
 from src.setup.driver.query.DriverInfoQuery import DriverInfoQuery
 
 

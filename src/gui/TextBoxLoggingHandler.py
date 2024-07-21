@@ -1,7 +1,7 @@
 import logging
 import tkinter as tk
 
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
 
 
 class TextBoxLoggingHandler(logging.Handler):

@@ -2,7 +2,7 @@ import inspect
 import platform
 from types import FrameType
 
-from src.common.RestrictCallers import only_accept_callers_from
+from src.common.reflection.RestrictCallers import only_accept_callers_from
 from src.console import EntryPoint
 from src.gui import GUIApp
 from src.setup.packaging.admin.OSAdmin import OSAdmin

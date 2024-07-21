@@ -6,8 +6,8 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from src.common.FileUtil import get_excel_data_in_column_start_at_row
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import get_excel_data_in_column_start_at_row
 from src.task.WebTask import WebTask
 
 

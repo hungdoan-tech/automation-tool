@@ -5,8 +5,8 @@ from logging import Logger
 
 import wget
 
-from src.common.FileUtil import remove_all_in_folder
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import remove_all_in_folder
 from src.setup.driver.download.DownloadDriver import DownloadDriver
 from src.setup.driver.query.DriverInfoQuery import DriverInfoQuery
 from src.setup.packaging.path.PathResolvingService import PathResolvingService

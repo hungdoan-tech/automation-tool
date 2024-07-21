@@ -3,13 +3,12 @@ import tkinter as tk
 from logging import Logger
 from tkinter import filedialog, Text
 
-from src.common.FileUtil import persist_settings_to_file
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import persist_settings_to_file
 from src.gui.UITaskPerformingStates import UITaskPerformingStates
 
 
 class UIComponentFactory:
-
     __instance = None
 
     __class_lock = threading.Lock()

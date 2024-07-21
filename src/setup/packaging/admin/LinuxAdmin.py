@@ -3,8 +3,8 @@ import subprocess
 import sys
 from logging import Logger
 
-from src.common.RestrictCallers import only_accept_callers_from
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.reflection.RestrictCallers import only_accept_callers_from
 from src.setup.packaging.admin.AdminPrivilegeProvider import AdminPrivilegeProvider
 from src.setup.packaging.admin.OSAdmin import OSAdmin
 from src.setup.packaging.path.PathResolvingService import PathResolvingService

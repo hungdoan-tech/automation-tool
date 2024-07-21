@@ -5,10 +5,9 @@ from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, Button
 from tkinter.ttk import Combobox, Progressbar, Style
 from typing import Tuple
 
-from src.common.FileUtil import load_key_value_from_file_properties, persist_settings_to_file, \
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import load_key_value_from_file_properties, persist_settings_to_file, \
     get_all_concrete_task_names
-from src.common.ReflectionUtil import create_task_instance
-from src.common.ThreadLocalLogger import get_current_logger
 from src.gui.TextBoxLoggingHandler import setup_textbox_logger
 from src.gui.UIComponentFactory import UIComponentFactory
 from src.gui.UITaskPerformingStates import UITaskPerformingStates
@@ -18,6 +17,7 @@ from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
+from src.task.TaskFactory import create_task_instance
 
 
 class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):

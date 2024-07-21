@@ -2,7 +2,7 @@ import time
 from logging import Logger
 from typing import Callable
 
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
 from src.task.WebTask import WebTask
 
 

@@ -2,8 +2,8 @@ import os
 import threading
 from logging import Logger
 
-from src.common.ResourceLock import ResourceLock
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.threading.ResourceLock import ResourceLock
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 if __name__ == "__main__":

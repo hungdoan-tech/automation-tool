@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 
-from src.common.RestrictCallers import only_accept_callers_from
+from src.common.reflection.RestrictCallers import only_accept_callers_from
 from src.setup.packaging.path.PathResolver import PathResolver
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
@@ -25,7 +25,6 @@ class RuntimeMutableFilePathResolver(PathResolver):
             with cls.__class_lock:
 
                 if cls.__instance is None:
-
                     cls.__instance = super(RuntimeMutableFilePathResolver, cls).__new__(cls)
 
         return cls.__instance

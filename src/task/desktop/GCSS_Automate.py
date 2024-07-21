@@ -7,9 +7,9 @@ from pywinauto import Application, WindowSpecification
 from pywinauto.controls.common_controls import ListViewWrapper, _listview_item
 from pywinauto.controls.win32_controls import ComboBoxWrapper, ButtonWrapper, EditWrapper
 
-from src.common.FileUtil import get_excel_data_in_column_start_at_row
-from src.common.StringUtil import extract_row_col_from_cell_pos_format
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import get_excel_data_in_column_start_at_row
+from src.common.util.StringUtil import extract_row_col_from_cell_pos_format
 from src.excel_reader_provider.ExcelReaderProvider import ExcelReaderProvider
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
 from src.task.DesktopTask import DesktopTask

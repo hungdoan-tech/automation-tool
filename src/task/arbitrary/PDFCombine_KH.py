@@ -4,9 +4,9 @@ from typing import Callable
 
 from PyPDF2 import PdfMerger
 
-from src.common.FileUtil import get_excel_data_in_column_start_at_row
-from src.common.StringUtil import get_row_index_from_excel_cell_format
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import get_excel_data_in_column_start_at_row
+from src.common.util.StringUtil import get_row_index_from_excel_cell_format
 from src.excel_reader_provider.ExcelReaderProvider import ExcelReaderProvider
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
 from src.task.AutomatedTask import AutomatedTask

@@ -1,6 +1,6 @@
 import os
 
-from src.common.StringUtil import escape_bat_file_special_chars
+from src.common.util.StringUtil import escape_bat_file_special_chars
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 

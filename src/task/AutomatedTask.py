@@ -6,10 +6,10 @@ from datetime import datetime
 from logging import Logger
 from typing import Callable
 
-from src.common.Percentage import Percentage
-from src.common.ResumableThread import ResumableThread
-from src.common.StringUtil import validate_keys_of_dictionary
-from src.common.ThreadLocalLogger import get_current_logger, create_thread_local_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger, create_thread_local_logger
+from src.common.threading.ResumableThread import ResumableThread
+from src.common.util.StringUtil import validate_keys_of_dictionary
+from src.task.Percentage import Percentage
 
 
 class AutomatedTask(Percentage, ResumableThread, ABC):

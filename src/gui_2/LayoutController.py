@@ -1,11 +1,12 @@
-from src.common.FileUtil import get_all_concrete_task_names, load_key_value_from_file_properties, \
-    persist_settings_to_file
-from src.gui.UIComponentFactory import UIComponentFactory
-from src.setup.packaging.path.PathResolvingService import PathResolvingService
 import os
 import tkinter as tk
 from tkinter import Label, Frame, messagebox, Button
 from tkinter.ttk import Combobox
+
+from src.common.util.FileUtil import get_all_concrete_task_names, load_key_value_from_file_properties, \
+    persist_settings_to_file
+from src.gui.UIComponentFactory import UIComponentFactory
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 
 class LayoutController():

@@ -5,7 +5,7 @@ from typing import Callable
 import pdfplumber
 from pdfplumber import PDF
 
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
 from src.excel_reader_provider import ExcelReaderProvider
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
 from src.task.AutomatedTask import AutomatedTask

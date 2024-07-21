@@ -1,6 +1,6 @@
 from logging import Logger
 
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
 from src.observer.Event import Event
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent

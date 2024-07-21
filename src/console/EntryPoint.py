@@ -3,12 +3,12 @@ import threading
 from logging import Logger
 from threading import Thread
 
-from src.common.FileUtil import load_key_value_from_file_properties
-from src.common.ReflectionUtil import create_task_instance
-from src.common.StringUtil import validate_keys_of_dictionary
-from src.common.ThreadLocalLogger import get_current_logger
+from src.common.logging.ThreadLocalLogger import get_current_logger
+from src.common.util.FileUtil import load_key_value_from_file_properties
+from src.common.util.StringUtil import validate_keys_of_dictionary
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
+from src.task.TaskFactory import create_task_instance
 
 if __name__ == "__main__":
     input_dir: str = PathResolvingService.get_instance().get_input_dir()
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         setting_file = os.path.join(input_dir, '{}.properties'.format(invoked_class))
         if not os.path.exists(setting_file):
             raise Exception("The settings file {} is not existed. Please providing it !".format(setting_file))
-        
+
         settings: dict[str, str] = load_key_value_from_file_properties(setting_file)
         settings['invoked_class'] = invoked_class
         automated_task: AutomatedTask = create_task_instance(invoked_class, settings, None)

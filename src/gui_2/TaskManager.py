@@ -1,6 +1,6 @@
 from typing import Callable
 
-from src.common.ReflectionUtil import create_task_instance
+from src.task.TaskFactory import create_task_instance
 
 
 class TaskManager:
