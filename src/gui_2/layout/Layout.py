@@ -60,7 +60,8 @@ class Layout(Component):
             self.header.grid_forget()
 
         if left_side_bar_width > 0:
-            self.left_side_bar.grid_configure(row=1, column=0, rowspan=body_row_span, columnspan=left_side_bar_width,
+            self.left_side_bar.grid_configure(row=header_height, column=0, rowspan=body_row_span,
+                                              columnspan=left_side_bar_width,
                                               sticky='nswe')
         else:
             self.left_side_bar.grid_forget()
@@ -69,7 +70,7 @@ class Layout(Component):
                                  columnspan=body_column_span, sticky='nswe')
 
         if right_side_bar_width > 0:
-            self.right_side_bar.grid_configure(row=1, column=body_column_span + left_side_bar_width,
+            self.right_side_bar.grid_configure(row=header_height, column=body_column_span + left_side_bar_width,
                                                rowspan=body_row_span, columnspan=right_side_bar_width,
                                                sticky='nswe')
         else:

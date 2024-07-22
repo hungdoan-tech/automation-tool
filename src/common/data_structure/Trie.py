@@ -1,58 +1,35 @@
 import os
-from typing import Dict, List, Generic, TypeVar
-
-from src.setup.packaging.path.PathResolvingService import PathResolvingService
+from typing import Generic, TypeVar
 
 K = TypeVar('K')
 
 
 class TreeNode(Generic[K]):
-    def __init__(self):
-        self.children: Dict[K, TreeNode[K]] = {}
-        self.is_end_of_path = True
+    def __init__(self, value: K):
+        self.children: dict[K, TreeNode[K]] = {}
+        self.is_leaf = True
+        self.value = value
 
 
 class Trie(Generic[K]):
     def __init__(self):
-        self.root = TreeNode[K]()
+        self.root = TreeNode[K]("")
 
-    def insert(self, path: List[K]) -> None:
+    def insert(self, path: list[K]) -> None:
         node = self.root
 
+        path_to_node = ''
         for part in path:
-
+            path_to_node += part + os.sep
             if node.children.get(part) is None:
-                node.is_end_of_path = False
-                node.children[part] = TreeNode[K]()
-
+                node.is_leaf = False
+                node.children[part] = TreeNode[K](path_to_node[:-len(os.sep)])
             node = node.children[part]
 
-    def search(self, path: List[K]) -> bool:
+    def search(self, path: list[K]) -> TreeNode:
         node = self.root
         for part in path:
-            if part not in node.children:
-                return False
+            if node.children.get(part) is None:
+                return None
             node = node.children[part]
-        return node.is_end_of_path
-
-    def starts_with(self, prefix: List[K]) -> bool:
-        node = self.root
-        for part in prefix:
-            if part not in node.children:
-                return False
-            node = node.children[part]
-        return True
-
-
-def add_directory_to_trie(trie: Trie[str], directory: str, base_path: list[str] = []) -> None:
-    for entry in os.listdir(directory):
-        full_path = os.path.join(directory, entry)
-        path_parts = base_path + [entry]
-        trie.insert(path_parts)
-        if os.path.isdir(full_path):
-            add_directory_to_trie(trie, full_path, path_parts)
-
-
-base_path: str = PathResolvingService.get_instance().resolve("src", "task")
-trie = Trie()
-add_directory_to_trie(trie, base_path)
+        return node

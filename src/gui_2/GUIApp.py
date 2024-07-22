@@ -1,8 +1,6 @@
 import os
 import tkinter as tk
 
-from src.gui_2.LoggingHandler import LoggingHandler
-from src.gui_2.TaskManager import TaskManager
 from src.gui_2.layout.Layout import Layout
 from src.gui_2.layout.body.Body import Body
 from src.gui_2.layout.footer.Footer import Footer
@@ -15,9 +13,6 @@ from src.setup.packaging.path.PathResolvingService import PathResolvingService
 class GUIApp:
     def __init__(self, window: tk.Tk):
         self.window = window
-        self.task_manager = TaskManager()
-        self.logging_textbox = None
-        self.logger_setup_callback = lambda: LoggingHandler(self.logging_textbox).setup_logger()
         self.layout = self.init_layout()
 
     def init_layout(self) -> Layout:
