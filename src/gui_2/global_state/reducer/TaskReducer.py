@@ -1,5 +1,5 @@
 from src.gui_2.global_state.DefinedType import States, Action
-from src.gui_2.global_state.action.TaskNameAction import TaskActionType
+from src.gui_2.global_state.action.TaskAction import TaskActionType
 
 
 def task_name_reducer(states: States = None, action: Action = None) -> States:

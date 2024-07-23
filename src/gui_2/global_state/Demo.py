@@ -2,7 +2,7 @@ import tkinter as tk
 
 from src.gui_2.global_state.DefinedType import Action, States
 from src.gui_2.global_state.Store import Store
-from src.gui_2.global_state.action.TaskNameAction import set_task_name
+from src.gui_2.global_state.action.TaskAction import set_task_name, TaskAction
 from src.gui_2.global_state.middleware.ErrorHandlingMiddleware import error_handling_middleware
 from src.gui_2.global_state.middleware.LoggingMiddeware import logging_middleware
 from src.gui_2.global_state.middleware.PromiseMiddleware import promise_middleware
@@ -27,9 +27,10 @@ class Test(Component):
 
     def render(self):
         self.label = tk.Label(master=self, text=self.state.get("name"), width=25, fg='#FFFFFF', bg='#00243D',
-                              borderwidth=0, )
+                              borderwidth=0)
         self.label.bind("<Button-1>", self.on_click)
         self.label.pack(side="left")
+        TaskAction.CONVENTIONAL.action()
 
     def on_click(self, event):
         self.set_state({"name": "Khoa"})

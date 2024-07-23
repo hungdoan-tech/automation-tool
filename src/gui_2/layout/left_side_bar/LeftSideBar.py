@@ -1,36 +1,28 @@
 import os
-from tkinter import ttk, Frame
+from tkinter import ttk
 from tkinter.ttk import Scrollbar
 
 from src.gui_2.global_state.Store import store
-from src.gui_2.global_state.action.TaskNameAction import set_task_name
+from src.gui_2.global_state.action.TaskAction import set_task_name
 from src.gui_2.layout.Component import Component
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 
 class LeftSideBar(Component):
     def render(self):
-        # col_num = 5
-        # runner = 0
-        # while runner < col_num:
-        #     self.grid_rowconfigure(index=runner, weight=1)
-        #     self.grid_columnconfigure(index=runner, weight=1)
-        #     runner += 1
         self.grid_rowconfigure(index=0, weight=1)
-        self.grid_rowconfigure(index=0, weight=1)
+        self.grid_columnconfigure(index=0, weight=1)
+        # self.grid_columnconfigure(index=1, weight=1)
 
-        inner_frame = Frame(master=self)
-        inner_frame.grid_rowconfigure(index=0, weight=1)
-        inner_frame.grid_rowconfigure(index=0, weight=1)
-        inner_frame.grid_configure(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew')
+        tree_scroll: Scrollbar = ttk.Scrollbar(master=self)
+        tree_scroll.grid(row=0, column=1, sticky='ns')
 
-        tree_scroll: Scrollbar = ttk.Scrollbar(master=inner_frame)
-        tree_scroll.grid_configure(row=0, column=4, rowspan=5, columnspan=1, sticky='nse')
-        treeview = ttk.Treeview(master=inner_frame, selectmode="extended", yscrollcommand=tree_scroll.set,
-                                columns=['0'])
-        treeview.grid_configure(row=0, column=1, rowspan=5, columnspan=3, sticky='nsew')
+        treeview = ttk.Treeview(master=self, selectmode="extended", yscrollcommand=tree_scroll.set,
+                                columns=())  # No additional columns
+        treeview.grid(row=0, column=0, sticky='nsew')
         tree_scroll.config(command=treeview.yview)
-        treeview.column('#0')
+
+        treeview.column('#0', width=0)  # Adjust width as needed
         treeview.heading('#0', text="Task type")
 
         path_to_tasks_module: str = PathResolvingService.get_instance().resolve("src", "task")
@@ -40,7 +32,7 @@ class LeftSideBar(Component):
         for item in treeview_data:
             treeview.insert(parent=item[0], index="end", iid=item[2], text=item[3])
 
-            if parent_set.__contains__(item[0]):
+            if item[0] in self.parent_set:
                 treeview.item(item[0], open=True)
 
         treeview.bind("<ButtonRelease-1>", self.on_item_click)

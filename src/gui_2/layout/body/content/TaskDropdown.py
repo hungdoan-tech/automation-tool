@@ -2,7 +2,7 @@ from tkinter.ttk import Combobox
 
 from src.common.util.FileUtil import get_all_concrete_task_names
 from src.gui_2.global_state.Store import store
-from src.gui_2.global_state.action.TaskNameAction import set_task_name
+from src.gui_2.global_state.action.TaskAction import set_task_name
 from src.gui_2.layout.Component import Component
 
 
