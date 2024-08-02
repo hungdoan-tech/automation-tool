@@ -15,10 +15,7 @@ class Store:
         self.reducer: Reducer = reducer
         self.states: States = initial_state
         self.listener_callbacks: weakref.WeakSet[SubscribeCallback] = weakref.WeakSet()
-
         self.middlewares = middlewares or []
-
-        # Enhance dispatch with middleware
         self.dispatch = self._apply_middlewares(self.dispatch)
 
     def get_state(self):

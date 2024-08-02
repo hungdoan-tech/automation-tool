@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter.ttk import Scrollbar
 
 from src.gui_2.global_state.Store import store
-from src.gui_2.global_state.action.TaskAction import set_task_name
+from src.gui_2.global_state.action.TaskAction import CHANGE_ACTIVE_TASK
 from src.gui_2.layout.Component import Component
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
@@ -49,7 +49,7 @@ class LeftSideBar(Component):
             return
 
         selected_task = self.treeview.item(item=item_id, option='text')
-        store.dispatch(set_task_name(selected_task))
+        store.dispatch(CHANGE_ACTIVE_TASK.invoke(selected_task))
 
     def __populate_treeview_data(self, directory: str):
         treeview_data = []
