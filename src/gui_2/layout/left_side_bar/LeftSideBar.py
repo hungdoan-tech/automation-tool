@@ -2,8 +2,6 @@ import os
 from tkinter import ttk
 from tkinter.ttk import Scrollbar
 
-from src.gui_2.global_state.Store import store
-from src.gui_2.global_state.action.TaskAction import CHANGE_ACTIVE_TASK
 from src.gui_2.layout.Component import Component
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
@@ -35,21 +33,21 @@ class LeftSideBar(Component):
             if item[0] in self.parent_set:
                 treeview.item(item[0], open=True)
 
-        treeview.bind("<ButtonRelease-1>", self.on_item_click)
+        # treeview.bind("<ButtonRelease-1>", self.on_item_click)
         self.treeview = treeview
 
-    def on_item_click(self, event):
-        item_id = self.winfo_containing(event.x_root, event.y_root).focus()
-        item_id: int = int(item_id)
-
-        if item_id is None:
-            return
-
-        if self.parent_set.__contains__(item_id):
-            return
-
-        selected_task = self.treeview.item(item=item_id, option='text')
-        store.dispatch(CHANGE_ACTIVE_TASK.invoke(selected_task))
+    # def on_item_click(self, event):
+    #     item_id = self.winfo_containing(event.x_root, event.y_root).focus()
+    #     item_id: int = int(item_id)
+    #
+    #     if item_id is None:
+    #         return
+    #
+    #     if self.parent_set.__contains__(item_id):
+    #         return
+    #
+    #     selected_task = self.treeview.item(item=item_id, option='text')
+    #     store.dispatch(CHANGE_ACTIVE_TASK.invoke(selected_task))
 
     def __populate_treeview_data(self, directory: str):
         treeview_data = []

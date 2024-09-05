@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+from tkinter import ttk
 
 from src.gui_2.layout.Layout import Layout
 from src.gui_2.layout.body.Body import Body
@@ -45,4 +46,13 @@ class GUIApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = GUIApp(root)
+    root.option_add("*tearOff", False)
+
+    theme_path: str = os.path.join(PathResolvingService.get_instance().resolve("resource"),
+                                   "theme", "forest-light.tcl")
+    root.tk.call("source", theme_path)
+
+    style = ttk.Style(root)
+    style.theme_use("forest-light")
+
     app.start()
