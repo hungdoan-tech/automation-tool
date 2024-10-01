@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, Frame
 
 from src.gui_2.layout.Layout import Layout
 from src.gui_2.layout.body.Body import Body
@@ -17,26 +17,41 @@ class GUIApp:
         self.layout = self.init_layout()
 
     def init_layout(self) -> Layout:
-        self.window.title("Automation Tool")
-        self.window.geometry('1920x1080')
-        self.window.configure(bg='#FFFFFF')
+        self.window.title("MEK AC - Automation Tool")
+
+        window_width = 1600
+        window_height = 900
+        self.window.geometry(f'{window_width}x{window_height}')
+
+        self.window.update()
+
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
+
+        self.window.geometry(f'{window_width}x{window_height}+{x_cordinate}+{y_cordinate}')
+        self.window.minsize(1600, 900)
+
+        self.window.configure()
 
         layout = Layout(master=self.window, bg='white')
         layout.grid_configure(row=0, column=0, sticky="nsew")
 
         resource_dir = PathResolvingService.get_instance().resolve('resource')
         branding_image_path = os.path.join(resource_dir, "img", "logo.png")
-        header_frame = Header(branding_image_path=branding_image_path, master=layout, bg='red')
+        header_frame = Header(branding_image_path=branding_image_path, master=layout, bg='#F7F7F7')
 
-        footer_frame = Footer(master=layout, bg='yellow')
-        left_frame = LeftSideBar(master=layout, bg='green')
-        right_frame = RightSideBar(master=layout, bg='black')
-        body_frame = Body(master=layout, bg='blue')
+        footer_frame = Footer(master=layout)
+        left_frame = LeftSideBar(master=layout, bg='#42B0D5')
+        right_frame = RightSideBar(master=layout, bg='#42B0D5')
+        body_frame = Body(master=layout)
 
         layout.set_layout(header_frame, left_frame, body_frame, right_frame, footer_frame)
 
         self.window.grid_rowconfigure(0, weight=1)
         self.window.grid_columnconfigure(0, weight=1)
+
         return layout
 
     def start(self):
